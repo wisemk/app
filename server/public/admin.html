@@ -54,9 +54,6 @@
       .brand-panel h1 {
         margin: 10px 0 8px; font-size: clamp(28px, 4vw, 36px); line-height: 1.02;
       }
-      .brand-panel p {
-        margin: 0; font-size: 14px; line-height: 1.66; color: var(--muted);
-      }
       .hero {
         padding: 26px;
         border-color: rgba(216, 226, 240, 0.96);
@@ -71,7 +68,6 @@
       .hero-headline {
         margin: 10px 0 8px; font-size: clamp(30px, 4vw, 42px); line-height: 1.05;
       }
-      .hero-copy p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.72; }
       .panel-kicker {
         font-size: 12px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; color: var(--orange);
         margin-bottom: 12px;
@@ -109,6 +105,38 @@
       .summary-label { font-size: 12px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; color: var(--orange); }
       .summary-value { font-size: 22px; line-height: 1.25; font-weight: 900; word-break: break-word; }
       .summary-detail { font-size: 13px; line-height: 1.58; color: var(--muted); word-break: break-word; }
+      .info-row, .label-row {
+        display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      }
+      .label-row {
+        align-items: center;
+      }
+      .info-wrap {
+        position: relative; display: inline-flex; align-items: center;
+      }
+      .info-button {
+        width: 22px; height: 22px; padding: 0; border-radius: 999px; border: 1px solid #bfdbfe;
+        background: #eff6ff; color: #2563eb; font-size: 12px; font-weight: 900;
+        display: inline-flex; align-items: center; justify-content: center; line-height: 1;
+      }
+      .info-button:hover {
+        background: #dbeafe;
+      }
+      .info-button:focus {
+        outline: 2px solid rgba(37,99,235,0.16);
+        outline-offset: 2px;
+      }
+      .info-tooltip {
+        position: absolute; top: 50%; left: calc(100% + 8px); transform: translateY(-50%);
+        width: min(280px, 60vw); padding: 11px 13px; border-radius: 14px; background: #162236;
+        color: #f8fbff; font-size: 12px; line-height: 1.6; box-shadow: 0 16px 30px rgba(15, 23, 42, 0.18);
+        opacity: 0; pointer-events: none; transition: opacity .12s ease; z-index: 30;
+      }
+      .info-wrap:hover .info-tooltip,
+      .info-wrap:focus-within .info-tooltip,
+      .info-wrap[data-open="true"] .info-tooltip {
+        opacity: 1; pointer-events: auto;
+      }
       .nav-list { display: grid; gap: 10px; }
       .nav-link {
         width: 100%; padding: 14px 15px; text-align: left; border-radius: 20px; border: 1px solid var(--line);
@@ -116,12 +144,7 @@
         transition: border-color .12s ease, transform .12s ease, background-color .12s ease;
       }
       .nav-link:hover { transform: translateY(-1px); border-color: #93c5fd; background: #f8fbff; }
-      .nav-link-title { display: block; font-size: 15px; font-weight: 900; margin-bottom: 4px; }
-      .nav-link-copy { display: block; font-size: 12px; line-height: 1.55; color: var(--muted); }
-      .notice {
-        margin-top: 18px; padding: 15px 18px; border-radius: 20px; border: 1px solid #bfdbfe;
-        background: rgba(239,246,255,0.92); color: #1d4ed8; font-size: 14px; line-height: 1.7;
-      }
+      .nav-link-title { display: block; font-size: 15px; font-weight: 900; }
       .sections { display: grid; gap: 18px; }
       summary.section-head {
         list-style: none; display: flex; justify-content: space-between; gap: 14px; align-items: center;
@@ -129,7 +152,6 @@
       }
       summary.section-head::-webkit-details-marker { display: none; }
       .section-title { font-size: 22px; font-weight: 900; }
-      .section-copy { margin-top: 4px; color: var(--muted); font-size: 14px; line-height: 1.58; }
       .section-badge {
         min-width: 52px; min-height: 48px; padding: 0 14px; border-radius: 18px; background: var(--green);
         color: #fff; font-size: 14px; font-weight: 900; display: inline-flex; align-items: center; justify-content: center;
@@ -138,12 +160,10 @@
       .panel { padding: 18px; background: var(--surface-2); }
       .panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
       .panel-title { font-size: 17px; font-weight: 900; }
-      .panel-copy { margin-top: 6px; color: var(--muted); font-size: 13px; line-height: 1.62; }
       .grid { display: grid; gap: 14px; }
       .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .field { display: grid; gap: 7px; }
       .field label { font-size: 13px; font-weight: 900; color: #24446f; }
-      .field small { font-size: 12px; line-height: 1.52; color: var(--muted); }
       .field input, .field textarea {
         width: 100%; padding: 13px 15px; border-radius: 16px; border: 1px solid var(--line);
         background: #ffffff; color: var(--ink);
@@ -167,6 +187,9 @@
         .shell { grid-template-columns: 1fr; }
         .sidebar { position: static; grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .brand-panel, .action-panel { grid-column: span 2; }
+        .info-tooltip {
+          top: calc(100% + 8px); left: 0; transform: none; width: min(240px, calc(100vw - 56px));
+        }
       }
       @media (max-width: 980px) {
         .sidebar { grid-template-columns: 1fr; }
@@ -177,6 +200,9 @@
         .hero, .sidebar-panel, .section-body { padding-left: 16px; padding-right: 16px; }
         .panel-head, .item-head, summary.section-head { flex-direction: column; align-items: stretch; }
         .grid.two { grid-template-columns: 1fr; }
+        .info-tooltip {
+          top: calc(100% + 8px); left: 0; transform: none; width: min(240px, calc(100vw - 56px));
+        }
       }
     </style>
   </head>
@@ -186,12 +212,21 @@
         <aside class="sidebar">
           <section class="sidebar-panel brand-panel">
             <div class="eyebrow">Content Admin</div>
-            <h1>운영 대시보드</h1>
-            <p>
-              현재 운영 상태를 먼저 보고, 필요한 섹션만 펼쳐서 수정하는 구조로
-              바꿨습니다. 저장하면 서버 JSON이 즉시 갱신되고 앱은 다음 새로고침부터
-              최신 내용을 불러옵니다.
-            </p>
+            <div class="info-row">
+              <h1>운영 대시보드</h1>
+              <span class="info-wrap" data-open="false">
+                <button
+                  class="info-button"
+                  type="button"
+                  aria-label="운영 대시보드 도움말"
+                  aria-describedby="dashboard-tip"
+                  aria-expanded="false"
+                >!</button>
+                <span class="info-tooltip" id="dashboard-tip" role="tooltip">
+                  현재 운영값을 먼저 보고 필요한 구간만 펼쳐서 수정합니다. 저장하면 서버 JSON이 즉시 갱신됩니다.
+                </span>
+              </span>
+            </div>
           </section>
 
           <section class="sidebar-panel action-panel">
@@ -221,7 +256,6 @@
               <article class="summary-card">
                 <div class="summary-label">전화 문의</div>
                 <div class="summary-value" id="summary-phone">-</div>
-                <div class="summary-detail">전화 버튼과 고객센터 영역에서 사용됩니다.</div>
               </article>
               <article class="summary-card">
                 <div class="summary-label">상세페이지</div>
@@ -247,26 +281,25 @@
           <section class="hero">
             <div class="hero-copy">
               <div class="eyebrow">Workspace</div>
-              <h2 class="hero-headline">운영 흐름이 먼저 보이고, 편집은 뒤에 오게</h2>
-              <p>
-                왼쪽에서는 지금 노출 중인 운영값과 저장 상태를 확인하고, 오른쪽에서는
-                필요한 구간만 열어서 수정합니다. 입력창을 계속 훑는 방식 대신
-                요약과 미리보기를 먼저 보게 만든 구조입니다.
-              </p>
-            </div>
-
-            <div class="notice">
-              혜택 카드, 상세 카드, 알림 문구, 재방문 단계는 아래에서 직접 추가/삭제할 수
-              있습니다. 링크 열기와 이미지 미리보기는 그대로 유지됩니다.
+              <div class="info-row">
+                <h2 class="hero-headline">운영 흐름이 먼저 보이고, 편집은 뒤에 오게</h2>
+                <span class="info-wrap" data-open="false">
+                  <button
+                    class="info-button"
+                    type="button"
+                    aria-label="워크스페이스 도움말"
+                    aria-describedby="workspace-tip"
+                    aria-expanded="false"
+                  >!</button>
+                  <span class="info-tooltip" id="workspace-tip" role="tooltip">
+                    왼쪽은 현재 값과 저장 상태, 오른쪽은 실제 편집 영역입니다. 필요한 섹션만 열어서 수정하면 됩니다.
+                  </span>
+                </span>
+              </div>
             </div>
           </section>
 
           <section class="sections" id="editor-root"></section>
-
-          <p class="footer">
-            운영 중에는 관리자 페이지에서 문구와 링크를 바꾸고, 기능 자체를 바꿀 때만 앱
-            코드를 수정하면 됩니다.
-          </p>
         </div>
       </div>
     </main>
@@ -291,6 +324,7 @@
       let isDirty = false;
       let isLoading = false;
       let isSaving = false;
+      let tooltipIdCounter = 0;
       const openSections = new Set();
 
       const SECTION_CONFIG = [
@@ -583,6 +617,44 @@
         return element;
       }
 
+      function setInfoTipOpen(wrapper, isOpen) {
+        if (!wrapper) return;
+        wrapper.dataset.open = isOpen ? 'true' : 'false';
+        const button = wrapper.querySelector('.info-button');
+        if (button) {
+          button.setAttribute('aria-expanded', String(isOpen));
+        }
+      }
+
+      function closeAllInfoTips(except = null) {
+        document.querySelectorAll('.info-wrap[data-open="true"]').forEach((wrapper) => {
+          if (except && wrapper === except) return;
+          setInfoTipOpen(wrapper, false);
+        });
+      }
+
+      function createInfoTip(text, label) {
+        if (!text) return null;
+
+        const wrapper = createElement('span', 'info-wrap');
+        wrapper.dataset.open = 'false';
+
+        const button = createElement('button', 'info-button', '!');
+        button.type = 'button';
+        button.setAttribute('aria-label', label || '도움말');
+        button.setAttribute('aria-expanded', 'false');
+
+        const tooltip = createElement('span', 'info-tooltip', text);
+        tooltip.id = `info-tip-${++tooltipIdCounter}`;
+        tooltip.setAttribute('role', 'tooltip');
+
+        button.setAttribute('aria-describedby', tooltip.id);
+
+        wrapper.appendChild(button);
+        wrapper.appendChild(tooltip);
+        return wrapper;
+      }
+
       function openPreviewUrl(url) {
         if (!isHttpUrl(url)) {
           setStatus('https:// 로 시작하는 링크를 넣은 뒤 다시 열어주세요.', { error: true });
@@ -604,12 +676,14 @@
 
       function createField(path, field, value) {
         const wrapper = createElement('div', 'field');
+        const labelRow = createElement('div', 'label-row');
         const label = createElement('label', '', field.label);
         label.htmlFor = path;
-        wrapper.appendChild(label);
+        labelRow.appendChild(label);
         if (field.hint) {
-          wrapper.appendChild(createElement('small', '', field.hint));
+          labelRow.appendChild(createInfoTip(field.hint, `${field.label} 도움말`));
         }
+        wrapper.appendChild(labelRow);
 
         const input = document.createElement(field.multiline ? 'textarea' : 'input');
         input.className = field.multiline ? '' : '';
@@ -673,10 +747,12 @@
         const panel = createElement('article', 'panel');
         const head = createElement('div', 'panel-head');
         const text = document.createElement('div');
-        text.appendChild(createElement('div', 'panel-title', block.title));
+        const titleRow = createElement('div', 'info-row');
+        titleRow.appendChild(createElement('div', 'panel-title', block.title));
         if (block.description) {
-          text.appendChild(createElement('div', 'panel-copy', block.description));
+          titleRow.appendChild(createInfoTip(block.description, `${block.title} 도움말`));
         }
+        text.appendChild(titleRow);
         head.appendChild(text);
         panel.appendChild(head);
 
@@ -693,10 +769,12 @@
         const panel = createElement('article', 'panel');
         const head = createElement('div', 'panel-head');
         const text = document.createElement('div');
-        text.appendChild(createElement('div', 'panel-title', block.title));
+        const titleRow = createElement('div', 'info-row');
+        titleRow.appendChild(createElement('div', 'panel-title', block.title));
         if (block.description) {
-          text.appendChild(createElement('div', 'panel-copy', block.description));
+          titleRow.appendChild(createInfoTip(block.description, `${block.title} 도움말`));
         }
+        text.appendChild(titleRow);
         head.appendChild(text);
 
         const addButton = createElement('button', 'button primary small', block.addLabel);
@@ -732,8 +810,14 @@
           item.appendChild(itemHead);
 
           const field = createElement('div', 'field');
-          field.appendChild(createElement('label', '', `${block.itemLabel} 문구`));
-          if (block.hint) field.appendChild(createElement('small', '', block.hint));
+          const labelRow = createElement('div', 'label-row');
+          labelRow.appendChild(createElement('label', '', `${block.itemLabel} 문구`));
+          if (block.hint) {
+            labelRow.appendChild(
+              createInfoTip(block.hint, `${block.itemLabel} 문구 도움말`),
+            );
+          }
+          field.appendChild(labelRow);
           const input = document.createElement('input');
           input.value = value;
           input.dataset.path = `${block.path}.${index}`;
@@ -755,10 +839,12 @@
         const panel = createElement('article', 'panel');
         const head = createElement('div', 'panel-head');
         const text = document.createElement('div');
-        text.appendChild(createElement('div', 'panel-title', block.title));
+        const titleRow = createElement('div', 'info-row');
+        titleRow.appendChild(createElement('div', 'panel-title', block.title));
         if (block.description) {
-          text.appendChild(createElement('div', 'panel-copy', block.description));
+          titleRow.appendChild(createInfoTip(block.description, `${block.title} 도움말`));
         }
+        text.appendChild(titleRow);
         head.appendChild(text);
 
         const addButton = createElement('button', 'button primary small', block.addLabel);
@@ -817,8 +903,12 @@
 
         const summary = createElement('summary', 'section-head');
         const left = document.createElement('div');
-        left.appendChild(createElement('div', 'section-title', section.title));
-        left.appendChild(createElement('div', 'section-copy', section.description));
+        const titleRow = createElement('div', 'info-row');
+        titleRow.appendChild(createElement('div', 'section-title', section.title));
+        if (section.description) {
+          titleRow.appendChild(createInfoTip(section.description, `${section.title} 도움말`));
+        }
+        left.appendChild(titleRow);
         summary.appendChild(left);
         summary.appendChild(createElement('div', 'section-badge', `${section.blocks.length}개`));
         details.appendChild(summary);
@@ -841,7 +931,6 @@
           const button = createElement('button', 'nav-link');
           button.type = 'button';
           button.appendChild(createElement('span', 'nav-link-title', section.title));
-          button.appendChild(createElement('span', 'nav-link-copy', section.description));
           button.addEventListener('click', () => {
             const target = document.querySelector(
               `details.section[data-section-id="${section.id}"]`,
@@ -944,6 +1033,29 @@
           console.error(error);
           setStatus(error.message, { error: true });
         });
+      });
+
+      document.addEventListener('click', (event) => {
+        const button = event.target.closest('.info-button');
+        if (button) {
+          event.preventDefault();
+          event.stopPropagation();
+          const wrapper = button.closest('.info-wrap');
+          const nextState = wrapper.dataset.open !== 'true';
+          closeAllInfoTips(wrapper);
+          setInfoTipOpen(wrapper, nextState);
+          return;
+        }
+
+        if (!event.target.closest('.info-wrap')) {
+          closeAllInfoTips();
+        }
+      }, true);
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          closeAllInfoTips();
+        }
       });
 
       window.addEventListener('beforeunload', (event) => {
