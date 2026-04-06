@@ -33,29 +33,58 @@
       }
       button, input, textarea { font: inherit; }
       button { cursor: pointer; }
-      .page { width: min(1160px, calc(100% - 28px)); margin: 0 auto; padding: 28px 0 88px; }
-      .hero {
-        position: sticky; top: 14px; z-index: 20; margin-bottom: 22px; padding: 24px;
-        border: 1px solid rgba(231, 215, 188, 0.95); border-radius: 30px; box-shadow: var(--shadow);
-        background: linear-gradient(140deg, rgba(255,253,249,0.98), rgba(249,236,210,0.96));
-        backdrop-filter: blur(10px);
+      .page { width: min(1380px, calc(100% - 28px)); margin: 0 auto; padding: 28px 0 88px; }
+      .shell {
+        display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 20px; align-items: start;
       }
-      .hero-top { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
+      .sidebar {
+        position: sticky; top: 18px; display: grid; gap: 16px;
+      }
+      .sidebar-panel, .hero, details.section {
+        overflow: hidden; border: 1px solid rgba(231,215,188,0.96); border-radius: 30px;
+        background: rgba(255,252,247,0.92); box-shadow: var(--shadow);
+      }
+      .sidebar-panel {
+        padding: 20px;
+      }
+      .brand-panel {
+        background: linear-gradient(160deg, rgba(255,253,249,0.98), rgba(248,236,210,0.94));
+      }
+      .brand-panel h1 {
+        margin: 10px 0 8px; font-size: clamp(28px, 4vw, 36px); line-height: 1.02;
+      }
+      .brand-panel p {
+        margin: 0; font-size: 14px; line-height: 1.66; color: var(--muted);
+      }
+      .hero {
+        padding: 26px; background: linear-gradient(150deg, rgba(255,253,249,0.98), rgba(251,241,221,0.96));
+      }
+      .hero-copy { max-width: 760px; }
       .eyebrow {
         display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 900;
         letter-spacing: 0.08em; text-transform: uppercase; color: var(--orange);
       }
       h1 { margin: 10px 0; font-size: clamp(31px, 5vw, 43px); line-height: 1.08; }
-      .hero-copy { max-width: 720px; }
+      .hero-headline {
+        margin: 10px 0 8px; font-size: clamp(30px, 4vw, 42px); line-height: 1.05;
+      }
       .hero-copy p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.72; }
-      .toolbar, .summary-actions, .field-actions, .item-controls { display: flex; flex-wrap: wrap; gap: 8px; }
-      .toolbar { gap: 12px; align-items: center; margin-top: 20px; }
+      .panel-kicker {
+        font-size: 12px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; color: var(--orange);
+        margin-bottom: 12px;
+      }
+      .workspace { display: grid; gap: 18px; min-width: 0; }
+      .toolbar, .summary-actions, .field-actions, .item-controls, .sidebar-actions {
+        display: flex; flex-wrap: wrap; gap: 8px;
+      }
+      .toolbar { flex-direction: column; align-items: stretch; margin-top: 16px; }
+      .sidebar-actions { margin-top: 12px; }
       .pill, .status {
         display: inline-flex; align-items: center; min-height: 42px; padding: 10px 14px;
         border-radius: 999px; font-size: 13px; font-weight: 800;
       }
       .pill { background: var(--green-soft); color: #254436; }
-      .status { background: rgba(255,255,255,0.76); border: 1px solid var(--line); color: var(--muted); }
+      .status { background: rgba(255,255,255,0.76); border: 1px solid var(--line); color: var(--muted); width: 100%; }
       .status.dirty { background: #eef4e9; color: var(--green); }
       .status.error { background: var(--danger-soft); color: var(--danger); }
       .button {
@@ -69,23 +98,26 @@
       .button.secondary { background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); }
       .button.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
       .button.small { min-height: 38px; padding: 0 12px; border-radius: 14px; font-size: 13px; }
-      .summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 22px; }
+      .summary-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
       .summary-card, .panel, .item {
         border: 1px solid var(--line); border-radius: 24px; background: rgba(255,255,255,0.78);
       }
-      .summary-card { min-height: 140px; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+      .summary-card { min-height: 0; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
       .summary-label { font-size: 12px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; color: var(--orange); }
       .summary-value { font-size: 22px; line-height: 1.25; font-weight: 900; word-break: break-word; }
       .summary-detail { font-size: 13px; line-height: 1.58; color: var(--muted); word-break: break-word; }
+      .nav-list { display: grid; gap: 10px; }
+      .nav-link {
+        width: 100%; padding: 14px 15px; text-align: left; border-radius: 20px; border: 1px solid var(--line);
+        background: rgba(255,255,255,0.74); color: var(--ink);
+      }
+      .nav-link-title { display: block; font-size: 15px; font-weight: 900; margin-bottom: 4px; }
+      .nav-link-copy { display: block; font-size: 12px; line-height: 1.55; color: var(--muted); }
       .notice {
-        margin-top: 16px; padding: 15px 18px; border-radius: 20px; border: 1px solid #efd7b7;
+        margin-top: 18px; padding: 15px 18px; border-radius: 20px; border: 1px solid #efd7b7;
         background: rgba(255,244,230,0.8); color: #7d522b; font-size: 14px; line-height: 1.7;
       }
       .sections { display: grid; gap: 18px; }
-      details.section {
-        overflow: hidden; border: 1px solid rgba(231,215,188,0.96); border-radius: 30px;
-        background: rgba(255,252,247,0.92); box-shadow: var(--shadow);
-      }
       summary.section-head {
         list-style: none; display: flex; justify-content: space-between; gap: 14px; align-items: center;
         padding: 18px 22px; cursor: pointer;
@@ -126,79 +158,112 @@
       .item-title { font-size: 15px; font-weight: 900; }
       .empty { padding: 16px; border-radius: 18px; border: 1px dashed #d4c4a7; color: var(--muted); background: #fffaf1; }
       .footer { margin-top: 18px; text-align: center; color: var(--muted); font-size: 13px; line-height: 1.7; }
+      @media (max-width: 1120px) {
+        .shell { grid-template-columns: 1fr; }
+        .sidebar { position: static; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .brand-panel, .action-panel { grid-column: span 2; }
+      }
       @media (max-width: 980px) {
-        .summary-grid, .grid.two { grid-template-columns: 1fr 1fr; }
+        .sidebar { grid-template-columns: 1fr; }
+        .brand-panel, .action-panel { grid-column: span 1; }
       }
       @media (max-width: 720px) {
         .page { width: min(100% - 18px, 100%); padding-top: 18px; }
-        .hero, .section-body { padding-left: 16px; padding-right: 16px; }
-        .hero-top, .panel-head, .item-head, summary.section-head { flex-direction: column; align-items: stretch; }
-        .summary-grid, .grid.two { grid-template-columns: 1fr; }
+        .hero, .sidebar-panel, .section-body { padding-left: 16px; padding-right: 16px; }
+        .panel-head, .item-head, summary.section-head { flex-direction: column; align-items: stretch; }
+        .grid.two { grid-template-columns: 1fr; }
       }
     </style>
   </head>
   <body>
     <main class="page">
-      <section class="hero">
-        <div class="hero-top">
-          <div class="hero-copy">
+      <div class="shell">
+        <aside class="sidebar">
+          <section class="sidebar-panel brand-panel">
             <div class="eyebrow">Content Admin</div>
-            <h1>운영자가 링크와 문구를 바로 만지는 관리자 화면</h1>
+            <h1>운영 대시보드</h1>
             <p>
-              상세페이지, 상담 링크, 전화번호, 이미지 카드, 알림 문구까지 여기서 바꾸면
-              앱은 새로고침만 해도 최신 내용을 그대로 반영합니다.
+              현재 운영 상태를 먼저 보고, 필요한 섹션만 펼쳐서 수정하는 구조로
+              바꿨습니다. 저장하면 서버 JSON이 즉시 갱신되고 앱은 다음 새로고침부터
+              최신 내용을 불러옵니다.
             </p>
-          </div>
-          <div class="status" id="status-text">서버 내용을 불러오는 중...</div>
-        </div>
+          </section>
 
-        <div class="toolbar">
-          <span class="pill" id="schema-badge">schema v-</span>
-          <span class="pill" id="updated-badge">updated -</span>
-          <button class="button secondary" id="reload-button" type="button">다시 불러오기</button>
-          <button class="button primary" id="save-button" type="button">저장하기</button>
-        </div>
-
-        <div class="summary-grid">
-          <article class="summary-card">
-            <div class="summary-label">브랜드</div>
-            <div class="summary-value" id="summary-brand">-</div>
-            <div class="summary-detail" id="summary-title">-</div>
-          </article>
-          <article class="summary-card">
-            <div class="summary-label">전화 문의</div>
-            <div class="summary-value" id="summary-phone">-</div>
-            <div class="summary-detail">전화 버튼과 고객센터 영역에서 사용됩니다.</div>
-          </article>
-          <article class="summary-card">
-            <div class="summary-label">상세페이지</div>
-            <div class="summary-value">링크 확인</div>
-            <div class="summary-detail" id="summary-detail-url">-</div>
-            <div class="summary-actions">
-              <button class="button secondary small" id="summary-detail-button" type="button">상세 링크 열기</button>
+          <section class="sidebar-panel action-panel">
+            <div class="panel-kicker">저장 상태</div>
+            <div class="status" id="status-text">서버 내용을 불러오는 중...</div>
+            <div class="toolbar">
+              <span class="pill" id="schema-badge">schema v-</span>
+              <span class="pill" id="updated-badge">updated -</span>
+              <button class="button secondary" id="reload-button" type="button">다시 불러오기</button>
+              <button class="button primary" id="save-button" type="button">저장하기</button>
             </div>
-          </article>
-          <article class="summary-card">
-            <div class="summary-label">상담 채널</div>
-            <div class="summary-value">링크 확인</div>
-            <div class="summary-detail" id="summary-chat-url">-</div>
-            <div class="summary-actions">
-              <button class="button secondary small" id="summary-chat-button" type="button">상담 링크 열기</button>
+          </section>
+
+          <section class="sidebar-panel">
+            <div class="panel-kicker">빠른 이동</div>
+            <div class="nav-list" id="nav-root"></div>
+          </section>
+
+          <section class="sidebar-panel">
+            <div class="panel-kicker">현재 운영값</div>
+            <div class="summary-grid">
+              <article class="summary-card">
+                <div class="summary-label">브랜드</div>
+                <div class="summary-value" id="summary-brand">-</div>
+                <div class="summary-detail" id="summary-title">-</div>
+              </article>
+              <article class="summary-card">
+                <div class="summary-label">전화 문의</div>
+                <div class="summary-value" id="summary-phone">-</div>
+                <div class="summary-detail">전화 버튼과 고객센터 영역에서 사용됩니다.</div>
+              </article>
+              <article class="summary-card">
+                <div class="summary-label">상세페이지</div>
+                <div class="summary-value">링크 확인</div>
+                <div class="summary-detail" id="summary-detail-url">-</div>
+                <div class="summary-actions">
+                  <button class="button secondary small" id="summary-detail-button" type="button">상세 링크 열기</button>
+                </div>
+              </article>
+              <article class="summary-card">
+                <div class="summary-label">상담 채널</div>
+                <div class="summary-value">링크 확인</div>
+                <div class="summary-detail" id="summary-chat-url">-</div>
+                <div class="summary-actions">
+                  <button class="button secondary small" id="summary-chat-button" type="button">상담 링크 열기</button>
+                </div>
+              </article>
             </div>
-          </article>
+          </section>
+        </aside>
+
+        <div class="workspace">
+          <section class="hero">
+            <div class="hero-copy">
+              <div class="eyebrow">Workspace</div>
+              <h2 class="hero-headline">운영 흐름이 먼저 보이고, 편집은 뒤에 오게</h2>
+              <p>
+                왼쪽에서는 지금 노출 중인 운영값과 저장 상태를 확인하고, 오른쪽에서는
+                필요한 구간만 열어서 수정합니다. 입력창을 계속 훑는 방식 대신
+                요약과 미리보기를 먼저 보게 만든 구조입니다.
+              </p>
+            </div>
+
+            <div class="notice">
+              혜택 카드, 상세 카드, 알림 문구, 재방문 단계는 아래에서 직접 추가/삭제할 수
+              있습니다. 링크 열기와 이미지 미리보기는 그대로 유지됩니다.
+            </div>
+          </section>
+
+          <section class="sections" id="editor-root"></section>
+
+          <p class="footer">
+            운영 중에는 관리자 페이지에서 문구와 링크를 바꾸고, 기능 자체를 바꿀 때만 앱
+            코드를 수정하면 됩니다.
+          </p>
         </div>
-
-        <div class="notice">
-          혜택 카드, 상세 카드, 알림 문구, 재방문 단계는 아래에서 직접 추가/삭제할 수 있습니다.
-          지금처럼 입력칸만 잔뜩 쌓이지 않도록 운영 섹션 기준으로 다시 묶어뒀습니다.
-        </div>
-      </section>
-
-      <section class="sections" id="editor-root"></section>
-
-      <p class="footer">
-        운영 중에는 관리자 페이지에서 문구와 링크를 바꾸고, 기능 자체를 바꿀 때만 앱 코드를 수정하면 됩니다.
-      </p>
+      </div>
     </main>
 
     <script>
@@ -215,6 +280,7 @@
       const summaryChatUrl = document.getElementById('summary-chat-url');
       const summaryDetailButton = document.getElementById('summary-detail-button');
       const summaryChatButton = document.getElementById('summary-chat-button');
+      const navRoot = document.getElementById('nav-root');
 
       let currentContent = null;
       let isDirty = false;
@@ -762,6 +828,28 @@
         return details;
       }
 
+      function renderQuickNav() {
+        if (!navRoot) return;
+        navRoot.innerHTML = '';
+
+        SECTION_CONFIG.forEach((section) => {
+          const button = createElement('button', 'nav-link');
+          button.type = 'button';
+          button.appendChild(createElement('span', 'nav-link-title', section.title));
+          button.appendChild(createElement('span', 'nav-link-copy', section.description));
+          button.addEventListener('click', () => {
+            const target = document.querySelector(
+              `details.section[data-section-id="${section.id}"]`,
+            );
+            if (!target) return;
+            target.open = true;
+            openSections.add(section.id);
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+          navRoot.appendChild(button);
+        });
+      }
+
       function updateSummary() {
         if (!currentContent) return;
         summaryBrand.textContent = currentContent.business.brandName || '-';
@@ -783,6 +871,7 @@
         SECTION_CONFIG.forEach((section, index) => {
           editorRoot.appendChild(renderSection(section, index));
         });
+        renderQuickNav();
         updateSummary();
       }
 
