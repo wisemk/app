@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: soaek-bank-content
+    runtime: node
+    region: singapore
+    plan: starter
+    buildCommand: npm ci
+    startCommand: npm run server
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CONTENT_FILE_PATH
+        value: /var/data/app-content.json
+      - key: CONTENT_SERVER_ADMIN_USER
+        value: admin
+      - key: CONTENT_SERVER_ADMIN_PASSWORD
+        sync: false
+    disk:
+      name: app-data
+      mountPath: /var/data
+      sizeGB: 5

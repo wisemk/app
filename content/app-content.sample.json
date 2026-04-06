@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-04-06T09:00:00+09:00",
+  "business": {
+    "brandName": "소액뱅크",
+    "businessHours": "매일 09:00 - 24:00",
+    "phoneNumber": "010-0000-0000",
+    "detailPageUrl": "https://example.com/detail-page",
+    "channelTalkUrl": "https://example.com/channel-talk"
+  },
+  "home": {
+    "badges": ["Galaxy Android MVP", "Server Driven"],
+    "title": "소액뱅크",
+    "subtitle": "상세 이미지, 상담 진입, 월말/월초 리마인드 문구를 서버에서 바꾸면 앱 업데이트 없이 바로 반영되도록 준비한 구조입니다."
+  },
+  "primaryActions": {
+    "chat": {
+      "label": "상담 채팅",
+      "caption": "채널톡 연결"
+    },
+    "detail": {
+      "label": "상세 보기",
+      "caption": "이미지/안내 페이지"
+    },
+    "call": {
+      "label": "전화 문의",
+      "caption": "대표번호"
+    }
+  },
+  "sections": {
+    "detail": {
+      "eyebrow": "Detail Story",
+      "title": "상세 이미지를 카드형으로 노출",
+      "description": "웹 상세페이지를 그대로 넣는 대신 모바일에서 읽기 좋은 흐름으로 나눠 보여주도록 설계했습니다."
+    },
+    "retention": {
+      "eyebrow": "Retention Loop",
+      "title": "재방문을 만드는 최소 흐름",
+      "description": "한 번 이용한 고객이 다시 들어올 때 필요한 동선을 3단계로 고정했습니다."
+    },
+    "push": {
+      "eyebrow": "Push Plan",
+      "title": "월말/월초 알림 운영안 예시",
+      "description": "알림은 고객 휴대폰 내부 스케줄이 아니라 서버나 관리자 도구에서 발송해야 재방문 효과를 측정할 수 있습니다."
+    },
+    "support": {
+      "eyebrow": "Support",
+      "title": "고객센터 진입부",
+      "description": "실운영에서는 ChannelTalk SDK 연동, 고객 식별값 전달, 상담 유입 추적을 이 영역에 붙이면 됩니다."
+    }
+  },
+  "benefits": [
+    {
+      "title": "즉시 상담",
+      "highlight": "1탭 진입"
+    },
+    {
+      "title": "재방문 리마인드",
+      "highlight": "월말/월초"
+    },
+    {
+      "title": "상세 정보 노출",
+      "highlight": "이미지 카드"
+    }
+  ],
+  "detailPanels": [
+    {
+      "eyebrow": "Simple Entry",
+      "title": "한눈에 보는 이용 흐름",
+      "description": "복잡한 메뉴 대신 상세 이미지를 카드형으로 나눠서, 고객이 바로 이해하고 문의 버튼을 누를 수 있게 구성했습니다.",
+      "imageUrl": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+      "eyebrow": "Trust Layer",
+      "title": "신뢰 요소를 먼저 보여주기",
+      "description": "빠른 응답, 반복 이용 고객 안내, 운영시간 같은 요소를 첫 구간에 배치해 이탈을 줄이는 흐름입니다.",
+      "imageUrl": "https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+      "eyebrow": "Direct CTA",
+      "title": "상담 버튼을 끝까지 고정",
+      "description": "상세 내용을 끝까지 읽지 않아도 문의할 수 있도록 하단 상담 버튼을 항상 노출하는 구조를 반영했습니다.",
+      "imageUrl": "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=1200&q=80"
+    }
+  ],
+  "reminderFlow": [
+    {
+      "title": "고객이 앱을 열면 바로 핵심 정보 확인",
+      "description": "상세 이미지, 혜택, 문의 버튼을 첫 화면에서 모두 확인하도록 구성해 재방문 때 다시 설명할 필요를 줄입니다."
+    },
+    {
+      "title": "상담은 채널톡으로 연결",
+      "description": "실운영에서는 ChannelTalk SDK 또는 채널 URL을 연결하고, 고객 식별값을 넘겨 상담 이력을 쌓는 구간입니다."
+    },
+    {
+      "title": "월말/월초 알림으로 복귀 유도",
+      "description": "푸시 토큰을 서버에 저장한 뒤 월말/월초 캠페인을 발송하면 앱 재방문률과 상담 전환률을 추적할 수 있습니다."
+    }
+  ],
+  "pushCampaigns": [
+    {
+      "title": "월말 안내",
+      "message": "이번 달 마감 전에 다시 확인해보세요. 앱에서 바로 상담 연결 가능합니다."
+    },
+    {
+      "title": "월초 리마인드",
+      "message": "새 달 시작 전에 조건 확인하고 빠르게 진행하세요. 지난 상담 이력 기준으로 바로 이어집니다."
+    },
+    {
+      "title": "휴면 고객 재유입",
+      "message": "오랜만에 방문하셔도 앱에서 이전처럼 간단하게 문의할 수 있도록 알림 문구를 짧고 명확하게 유지합니다."
+    }
+  ],
+  "support": {
+    "body": "실제 운영 시에는 관리자 페이지에서 전화번호, 채널톡 주소, 상세페이지 주소를 수정하고 앱은 그 값을 바로 불러오게 됩니다.",
+    "chatButtonLabel": "채팅 열기",
+    "chatButtonCaption": "서버 주소 반영",
+    "phoneButtonLabel": "대표번호"
+  }
+}
