@@ -16,7 +16,11 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { DEFAULT_APP_CONTENT } from './src/data/content';
-import { requestPushPermissionStatus } from './src/services/notifications';
+import {
+  getNotificationAccessState,
+  openAppNotificationSettings,
+  requestPushPermissionStatus,
+} from './src/services/notifications';
 import {
   getDefaultContentState,
   getStartupContentState,
@@ -24,6 +28,12 @@ import {
 } from './src/services/remoteContent';
 import { openChat, openPhoneDialer, openWebsite } from './src/services/chat';
 import type { ContentState } from './src/types/content';
+
+type NotificationGateState = {
+  status: 'checking' | 'granted' | 'blocked';
+  message: string;
+  requiresSettings: boolean;
+};
 
 type HomeActionCardProps = {
   label: string;
@@ -160,8 +170,14 @@ export default function App() {
   const [pushStatusMessage, setPushStatusMessage] = useState(
     '알림 권한은 아직 확인하지 않았습니다.',
   );
+  const [notificationGate, setNotificationGate] = useState<NotificationGateState>({
+    status: 'checking',
+    message: '알림 권한을 확인하는 중입니다.',
+    requiresSettings: false,
+  });
   const [refreshing, setRefreshing] = useState(false);
   const lastRemoteCheckAtRef = useRef(0);
+  const hasBootstrappedContentRef = useRef(false);
 
   const content = contentState.content ?? DEFAULT_APP_CONTENT;
 
@@ -176,6 +192,22 @@ export default function App() {
     return await refreshRemoteContent();
   };
 
+  const bootstrapContent = async () => {
+    if (hasBootstrappedContentRef.current) {
+      return;
+    }
+
+    hasBootstrappedContentRef.current = true;
+
+    const startupState = await getStartupContentState();
+    setContentState(startupState);
+
+    const refreshedState = await runRemoteRefresh(true);
+    if (refreshedState) {
+      setContentState(refreshedState);
+    }
+  };
+
   useEffect(() => {
     let isMounted = true;
 
@@ -187,14 +219,38 @@ export default function App() {
       setContentState(nextState);
     };
 
-    const bootstrap = async () => {
-      const startupState = await getStartupContentState();
-      applyState(startupState);
+    const applyNotificationGate = async (options?: {
+      autoPromptOnce?: boolean;
+      requestIfPossible?: boolean;
+    }) => {
+      const accessState = await getNotificationAccessState({
+        autoPromptOnce: options?.autoPromptOnce,
+        requestIfPossible: options?.requestIfPossible,
+      });
 
-      const refreshedState = await runRemoteRefresh(true);
-      if (refreshedState) {
-        applyState(refreshedState);
+      if (!isMounted) {
+        return accessState;
       }
+
+      setNotificationGate({
+        status: accessState.granted ? 'granted' : 'blocked',
+        message: accessState.message,
+        requiresSettings: accessState.requiresSettings,
+      });
+
+      return accessState;
+    };
+
+    const bootstrap = async () => {
+      const accessState = await applyNotificationGate({
+        autoPromptOnce: true,
+      });
+
+      if (!accessState?.granted) {
+        return;
+      }
+
+      await bootstrapContent();
     };
 
     void bootstrap();
@@ -204,11 +260,23 @@ export default function App() {
         return;
       }
 
-      void runRemoteRefresh(false).then((nextContentState) => {
+      void (async () => {
+        const accessState = await applyNotificationGate();
+
+        if (!accessState?.granted) {
+          return;
+        }
+
+        if (!hasBootstrappedContentRef.current) {
+          await bootstrapContent();
+          return;
+        }
+
+        const nextContentState = await runRemoteRefresh(false);
         if (nextContentState) {
           applyState(nextContentState);
         }
-      });
+      })();
     });
 
     return () => {
@@ -240,6 +308,40 @@ export default function App() {
     Alert.alert('알림 상태 확인', result);
   };
 
+  const handleNotificationGateRequest = async () => {
+    const accessState = await getNotificationAccessState({
+      requestIfPossible: true,
+    });
+
+    setNotificationGate({
+      status: accessState.granted ? 'granted' : 'blocked',
+      message: accessState.message,
+      requiresSettings: accessState.requiresSettings,
+    });
+
+    if (accessState.granted) {
+      await bootstrapContent();
+    }
+  };
+
+  const handleNotificationGateCheck = async () => {
+    const accessState = await getNotificationAccessState();
+
+    setNotificationGate({
+      status: accessState.granted ? 'granted' : 'blocked',
+      message: accessState.message,
+      requiresSettings: accessState.requiresSettings,
+    });
+
+    if (accessState.granted) {
+      await bootstrapContent();
+    }
+  };
+
+  const handleNotificationGateSettings = async () => {
+    await openAppNotificationSettings();
+  };
+
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
@@ -251,6 +353,66 @@ export default function App() {
       setRefreshing(false);
     }
   };
+
+  if (notificationGate.status !== 'granted') {
+    const isCheckingPermission = notificationGate.status === 'checking';
+
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar style="dark" />
+        <View style={styles.permissionGateScreen}>
+          <LinearGradient
+            colors={['#F8EEDB', '#F3E4CB', '#EED4B6']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.permissionGateCard}
+          >
+            <View style={styles.permissionGateBadge}>
+              <Text style={styles.permissionGateBadgeText}>Push Required</Text>
+            </View>
+            <Text style={styles.permissionGateTitle}>알림 허용이 필요합니다</Text>
+            <Text style={styles.permissionGateBody}>{notificationGate.message}</Text>
+
+            <View style={styles.permissionGatePanel}>
+              <Text style={styles.permissionGatePanelTitle}>왜 필요한가요?</Text>
+              <Text style={styles.permissionGatePanelBody}>
+                월말/월초 재방문 알림을 보내려면 최초 1회 알림 권한 허용이 필요합니다.
+              </Text>
+            </View>
+
+            {isCheckingPermission ? (
+              <View style={styles.permissionGateActions}>
+                <View style={styles.permissionGateDisabledButton}>
+                  <Text style={styles.permissionGateDisabledLabel}>권한 확인 중...</Text>
+                </View>
+              </View>
+            ) : (
+              <View style={styles.permissionGateActions}>
+                <Pressable
+                  style={styles.permissionGatePrimaryButton}
+                  onPress={
+                    notificationGate.requiresSettings
+                      ? handleNotificationGateSettings
+                      : handleNotificationGateRequest
+                  }
+                >
+                  <Text style={styles.permissionGatePrimaryLabel}>
+                    {notificationGate.requiresSettings ? '설정 열기' : '권한 요청'}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={styles.permissionGateSecondaryButton}
+                  onPress={handleNotificationGateCheck}
+                >
+                  <Text style={styles.permissionGateSecondaryLabel}>다시 확인</Text>
+                </Pressable>
+              </View>
+            )}
+          </LinearGradient>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -1002,6 +1164,110 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
     color: '#C6D8CF',
+  },
+  permissionGateScreen: {
+    flex: 1,
+    paddingHorizontal: 18,
+    paddingVertical: 20,
+    justifyContent: 'center',
+  },
+  permissionGateCard: {
+    borderRadius: 32,
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+    borderWidth: 1,
+    borderColor: '#E8D6BB',
+    gap: 18,
+    overflow: 'hidden',
+  },
+  permissionGateBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.72)',
+    borderWidth: 1,
+    borderColor: '#E6D9C7',
+  },
+  permissionGateBadgeText: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '800',
+    color: '#284538',
+  },
+  permissionGateTitle: {
+    fontSize: 34,
+    lineHeight: 40,
+    fontWeight: '900',
+    color: '#143327',
+  },
+  permissionGateBody: {
+    fontSize: 15,
+    lineHeight: 24,
+    color: '#4F665D',
+  },
+  permissionGatePanel: {
+    borderRadius: 24,
+    paddingHorizontal: 18,
+    paddingVertical: 18,
+    backgroundColor: 'rgba(255,255,255,0.68)',
+    borderWidth: 1,
+    borderColor: '#E7D8C3',
+    gap: 8,
+  },
+  permissionGatePanelTitle: {
+    fontSize: 16,
+    lineHeight: 20,
+    fontWeight: '900',
+    color: '#17372C',
+  },
+  permissionGatePanelBody: {
+    fontSize: 14,
+    lineHeight: 22,
+    color: '#5C6F67',
+  },
+  permissionGateActions: {
+    gap: 10,
+  },
+  permissionGateDisabledButton: {
+    borderRadius: 20,
+    minHeight: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.68)',
+    borderWidth: 1,
+    borderColor: '#D8C6AB',
+  },
+  permissionGateDisabledLabel: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#60726A',
+  },
+  permissionGatePrimaryButton: {
+    borderRadius: 20,
+    minHeight: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#163B2E',
+  },
+  permissionGatePrimaryLabel: {
+    fontSize: 15,
+    fontWeight: '900',
+    color: '#FFFFFF',
+  },
+  permissionGateSecondaryButton: {
+    borderRadius: 20,
+    minHeight: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.72)',
+    borderWidth: 1,
+    borderColor: '#D8C6AB',
+  },
+  permissionGateSecondaryLabel: {
+    fontSize: 15,
+    fontWeight: '900',
+    color: '#17372C',
   },
   supportGrid: {
     gap: 14,
