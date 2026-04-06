@@ -31,6 +31,12 @@
     ],
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "ffa34aa9-a4a1-4bc1-8c37-ae65228c064e"
+      }
+    },
+    "owner": "wisemks-organization"
   }
 }
