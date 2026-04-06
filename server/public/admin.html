@@ -40,7 +40,7 @@
       .sidebar {
         display: grid; gap: 16px;
       }
-      .sidebar-panel, .hero, details.section {
+      .sidebar-panel, details.section {
         overflow: hidden; border: 1px solid var(--line); border-radius: 30px;
         background: var(--surface); box-shadow: var(--shadow);
       }
@@ -54,20 +54,11 @@
       .brand-panel h1 {
         margin: 10px 0 8px; font-size: clamp(28px, 4vw, 36px); line-height: 1.02;
       }
-      .hero {
-        padding: 26px;
-        border-color: rgba(216, 226, 240, 0.96);
-        background: linear-gradient(150deg, rgba(255,255,255,0.99), rgba(245,249,255,0.96));
-      }
-      .hero-copy { max-width: 760px; }
       .eyebrow {
         display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 900;
         letter-spacing: 0.08em; text-transform: uppercase; color: var(--orange);
       }
       h1 { margin: 10px 0; font-size: clamp(31px, 5vw, 43px); line-height: 1.08; }
-      .hero-headline {
-        margin: 10px 0 8px; font-size: clamp(30px, 4vw, 42px); line-height: 1.05;
-      }
       .panel-kicker {
         font-size: 12px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; color: var(--orange);
         margin-bottom: 12px;
@@ -197,7 +188,7 @@
       }
       @media (max-width: 720px) {
         .page { width: min(100% - 18px, 100%); padding-top: 18px; }
-        .hero, .sidebar-panel, .section-body { padding-left: 16px; padding-right: 16px; }
+        .sidebar-panel, .section-body { padding-left: 16px; padding-right: 16px; }
         .panel-head, .item-head, summary.section-head { flex-direction: column; align-items: stretch; }
         .grid.two { grid-template-columns: 1fr; }
         .info-tooltip {
@@ -212,25 +203,11 @@
         <aside class="sidebar">
           <section class="sidebar-panel brand-panel">
             <div class="eyebrow">Content Admin</div>
-            <div class="info-row">
-              <h1>운영 대시보드</h1>
-              <span class="info-wrap" data-open="false">
-                <button
-                  class="info-button"
-                  type="button"
-                  aria-label="운영 대시보드 도움말"
-                  aria-describedby="dashboard-tip"
-                  aria-expanded="false"
-                >!</button>
-                <span class="info-tooltip" id="dashboard-tip" role="tooltip">
-                  현재 운영값을 먼저 보고 필요한 구간만 펼쳐서 수정합니다. 저장하면 서버 JSON이 즉시 갱신됩니다.
-                </span>
-              </span>
-            </div>
+            <h1>콘텐츠 관리</h1>
           </section>
 
           <section class="sidebar-panel action-panel">
-            <div class="panel-kicker">저장 상태</div>
+            <div class="panel-kicker">저장</div>
             <div class="status" id="status-text">서버 내용을 불러오는 중...</div>
             <div class="toolbar">
               <span class="pill" id="schema-badge">schema v-</span>
@@ -241,36 +218,35 @@
           </section>
 
           <section class="sidebar-panel">
-            <div class="panel-kicker">빠른 이동</div>
+            <div class="panel-kicker">섹션</div>
             <div class="nav-list" id="nav-root"></div>
           </section>
 
           <section class="sidebar-panel">
-            <div class="panel-kicker">현재 운영값</div>
+            <div class="panel-kicker">운영값</div>
             <div class="summary-grid">
               <article class="summary-card">
                 <div class="summary-label">브랜드</div>
                 <div class="summary-value" id="summary-brand">-</div>
-                <div class="summary-detail" id="summary-title">-</div>
               </article>
               <article class="summary-card">
-                <div class="summary-label">전화 문의</div>
+                <div class="summary-label">전화</div>
                 <div class="summary-value" id="summary-phone">-</div>
               </article>
               <article class="summary-card">
-                <div class="summary-label">상세페이지</div>
-                <div class="summary-value">링크 확인</div>
+                <div class="summary-label">상세</div>
+                <div class="summary-value">링크</div>
                 <div class="summary-detail" id="summary-detail-url">-</div>
                 <div class="summary-actions">
-                  <button class="button secondary small" id="summary-detail-button" type="button">상세 링크 열기</button>
+                  <button class="button secondary small" id="summary-detail-button" type="button">열기</button>
                 </div>
               </article>
               <article class="summary-card">
-                <div class="summary-label">상담 채널</div>
-                <div class="summary-value">링크 확인</div>
+                <div class="summary-label">상담</div>
+                <div class="summary-value">링크</div>
                 <div class="summary-detail" id="summary-chat-url">-</div>
                 <div class="summary-actions">
-                  <button class="button secondary small" id="summary-chat-button" type="button">상담 링크 열기</button>
+                  <button class="button secondary small" id="summary-chat-button" type="button">열기</button>
                 </div>
               </article>
             </div>
@@ -278,27 +254,6 @@
         </aside>
 
         <div class="workspace">
-          <section class="hero">
-            <div class="hero-copy">
-              <div class="eyebrow">Workspace</div>
-              <div class="info-row">
-                <h2 class="hero-headline">운영 흐름이 먼저 보이고, 편집은 뒤에 오게</h2>
-                <span class="info-wrap" data-open="false">
-                  <button
-                    class="info-button"
-                    type="button"
-                    aria-label="워크스페이스 도움말"
-                    aria-describedby="workspace-tip"
-                    aria-expanded="false"
-                  >!</button>
-                  <span class="info-tooltip" id="workspace-tip" role="tooltip">
-                    왼쪽은 현재 값과 저장 상태, 오른쪽은 실제 편집 영역입니다. 필요한 섹션만 열어서 수정하면 됩니다.
-                  </span>
-                </span>
-              </div>
-            </div>
-          </section>
-
           <section class="sections" id="editor-root"></section>
         </div>
       </div>
@@ -312,7 +267,6 @@
       const reloadButton = document.getElementById('reload-button');
       const saveButton = document.getElementById('save-button');
       const summaryBrand = document.getElementById('summary-brand');
-      const summaryTitle = document.getElementById('summary-title');
       const summaryPhone = document.getElementById('summary-phone');
       const summaryDetailUrl = document.getElementById('summary-detail-url');
       const summaryChatUrl = document.getElementById('summary-chat-url');
@@ -947,7 +901,6 @@
       function updateSummary() {
         if (!currentContent) return;
         summaryBrand.textContent = currentContent.business.brandName || '-';
-        summaryTitle.textContent = currentContent.home.title || '-';
         summaryPhone.textContent = currentContent.business.phoneNumber || '-';
         summaryDetailUrl.textContent = currentContent.business.detailPageUrl || '-';
         summaryChatUrl.textContent = currentContent.business.channelTalkUrl || '-';
