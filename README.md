@@ -144,6 +144,24 @@ npm run web
 - 현재 작업 PC에는 Android SDK / adb / sdkmanager 가 잡혀 있지 않아 네이티브 빌드까지는 검증하지 못했습니다.
 - 이번 작업은 `앱 골격 + 원격 콘텐츠 구조 + 캐시/새로고침 + 콘텐츠 서버 + 관리자 페이지`까지 완료한 상태입니다.
 
+## EAS Build
+
+설치형 안드로이드 앱을 만들 수 있도록 EAS 빌드 설정을 추가했습니다.
+
+- 앱 패키지명: `com.wisemk.soaekbank`
+- 내부 배포용 APK 프로필: `preview`
+- 스토어 제출용 AAB 프로필: `production`
+
+예시:
+
+```bash
+npx eas-cli login
+npx eas-cli build:configure
+npx eas-cli build --platform android --profile preview
+```
+
+`preview`는 바로 설치 가능한 APK를 만들고, `production`은 Play Store 제출용 AAB를 만듭니다.
+
 ## Render 배포
 
 현재 구조는 관리자 수정 내용을 JSON 파일에 저장하므로, **디스크가 유지되는 서버**가 필요합니다. 이 구조에는 Vercel/Netlify 같은 서버리스보다 Render Web Service가 더 맞습니다.

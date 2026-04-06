@@ -1,6 +1,11 @@
+import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+
+function getExpoProjectId() {
+  return Constants.easConfig?.projectId ?? Constants.expoConfig?.extra?.eas?.projectId;
+}
 
 export async function requestPushPermissionStatus() {
   if (Platform.OS === 'android') {
@@ -29,7 +34,15 @@ export async function requestPushPermissionStatus() {
   }
 
   try {
-    const expoPushToken = await Notifications.getExpoPushTokenAsync();
+    const projectId = getExpoProjectId();
+
+    if (!projectId) {
+      return '푸시 권한은 허용되었지만 Expo 푸시 토큰 발급에는 `projectId` 설정이 더 필요합니다. EAS 프로젝트를 연결한 뒤 다시 시도하세요.';
+    }
+
+    const expoPushToken = await Notifications.getExpoPushTokenAsync({
+      projectId,
+    });
 
     return `푸시 권한이 허용되었고 Expo 푸시 토큰도 발급되었습니다.\n테스트 토큰: ${expoPushToken.data}\n이 토큰을 서버 또는 관리자 발송 도구에 저장하면 월말/월초 푸시 테스트까지 이어갈 수 있습니다.`;
   } catch (error) {
