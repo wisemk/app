@@ -362,7 +362,7 @@ export default function App() {
         <StatusBar style="dark" />
         <View style={styles.permissionGateScreen}>
           <LinearGradient
-            colors={['#F8EEDB', '#F3E4CB', '#EED4B6']}
+            colors={['#FFFFFF', '#F5F9FF', '#EAF2FF']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.permissionGateCard}
@@ -425,12 +425,12 @@ export default function App() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            tintColor="#1B4332"
+            tintColor="#2563EB"
           />
         }
       >
         <LinearGradient
-          colors={['#F8EEDB', '#F3E4CB', '#EED4B6']}
+          colors={['#FFFFFF', '#F5F9FF', '#EAF2FF']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.heroCard}
@@ -541,7 +541,7 @@ export default function App() {
                 style={[styles.storyCard, index === 0 && styles.storyCardFeatured]}
               >
                 <LinearGradient
-                  colors={['rgba(17, 35, 28, 0.08)', 'rgba(15, 34, 27, 0.92)']}
+                  colors={['rgba(37, 99, 235, 0.10)', 'rgba(15, 23, 42, 0.88)']}
                   style={styles.storyOverlay}
                 >
                   <Text style={styles.storyEyebrow}>{panel.eyebrow}</Text>
@@ -577,7 +577,7 @@ export default function App() {
         </View>
 
         <LinearGradient
-          colors={['#173E31', '#123026']}
+          colors={['#1E3A8A', '#172554']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.pushSection}
@@ -665,11 +665,11 @@ export default function App() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F7EBDC',
+    backgroundColor: '#FFFFFF',
   },
   screen: {
     flex: 1,
-    backgroundColor: '#F7EBDC',
+    backgroundColor: '#FFFFFF',
   },
   contentContainer: {
     paddingHorizontal: 18,
@@ -684,7 +684,7 @@ const styles = StyleSheet.create({
     paddingVertical: 22,
     gap: 18,
     borderWidth: 1,
-    borderColor: '#E8D6BB',
+    borderColor: '#D7E6FF',
     position: 'relative',
   },
   heroGlowPrimary: {
@@ -694,7 +694,7 @@ const styles = StyleSheet.create({
     width: 160,
     height: 160,
     borderRadius: 80,
-    backgroundColor: 'rgba(255,255,255,0.42)',
+    backgroundColor: 'rgba(96, 165, 250, 0.18)',
   },
   heroGlowSecondary: {
     position: 'absolute',
@@ -703,7 +703,7 @@ const styles = StyleSheet.create({
     width: 140,
     height: 140,
     borderRadius: 70,
-    backgroundColor: 'rgba(255,255,255,0.26)',
+    backgroundColor: 'rgba(147, 197, 253, 0.18)',
   },
   heroUtilityRow: {
     flexDirection: 'row',
@@ -715,29 +715,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.72)',
+    backgroundColor: 'rgba(255,255,255,0.92)',
     borderWidth: 1,
-    borderColor: '#E6D9C7',
+    borderColor: '#D7E6FF',
   },
   liveBadgeText: {
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '700',
-    color: '#284538',
+    color: '#1D4ED8',
   },
   refreshChip: {
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#1B4332',
-    backgroundColor: 'rgba(255, 249, 240, 0.82)',
+    borderColor: '#2563EB',
+    backgroundColor: '#EFF6FF',
   },
   refreshChipLabel: {
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '800',
-    color: '#183B2E',
+    color: '#1D4ED8',
   },
   heroBadgeRow: {
     flexDirection: 'row',
@@ -748,8 +748,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 999,
-    backgroundColor: '#E6EDD9',
-    color: '#234336',
+    backgroundColor: '#DBEAFE',
+    color: '#1D4ED8',
     fontSize: 12,
     fontWeight: '800',
   },
@@ -759,19 +759,19 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
-    color: '#BF663A',
+    color: '#2563EB',
   },
   heroTitle: {
     fontSize: 40,
     lineHeight: 44,
     fontWeight: '900',
-    color: '#143327',
+    color: '#0F172A',
   },
   heroSubtitle: {
     maxWidth: 540,
     fontSize: 15,
     lineHeight: 24,
-    color: '#4F665D',
+    color: '#475569',
   },
   heroInfoRow: {
     gap: 12,
@@ -785,9 +785,9 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     paddingHorizontal: 16,
     paddingVertical: 16,
-    backgroundColor: 'rgba(255,255,255,0.72)',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E7D8C3',
+    borderColor: '#D7E6FF',
     justifyContent: 'space-between',
     gap: 8,
   },
@@ -795,13 +795,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '800',
-    color: '#B05E36',
+    color: '#2563EB',
   },
   infoValue: {
     fontSize: 20,
     lineHeight: 25,
     fontWeight: '900',
-    color: '#183628',
+    color: '#0F172A',
   },
   heroActionStack: {
     gap: 12,
@@ -829,16 +829,16 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
   },
   actionPrimary: {
-    backgroundColor: '#163B2E',
-    borderColor: '#163B2E',
+    backgroundColor: '#2563EB',
+    borderColor: '#2563EB',
   },
   actionSecondary: {
-    backgroundColor: '#FFF9EF',
-    borderColor: '#E9D8BF',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#D7E6FF',
   },
   actionGhost: {
-    backgroundColor: 'rgba(255,255,255,0.54)',
-    borderColor: '#D8C6AB',
+    backgroundColor: '#F8FBFF',
+    borderColor: '#D7E6FF',
   },
   actionPressed: {
     opacity: 0.88,
@@ -856,7 +856,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   actionLabelDark: {
-    color: '#17372C',
+    color: '#0F172A',
   },
   actionCaption: {
     fontSize: 13,
@@ -864,10 +864,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   actionCaptionPrimary: {
-    color: '#D6E7DE',
+    color: '#DBEAFE',
   },
   actionCaptionDark: {
-    color: '#587066',
+    color: '#475569',
   },
   actionArrow: {
     width: 42,
@@ -880,7 +880,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.14)',
   },
   actionArrowLight: {
-    backgroundColor: '#F2E6D0',
+    backgroundColor: '#DBEAFE',
   },
   actionArrowLabel: {
     fontSize: 18,
@@ -890,7 +890,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   actionArrowLabelDark: {
-    color: '#17372C',
+    color: '#1D4ED8',
   },
   benefitGrid: {
     gap: 12,
@@ -902,9 +902,9 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     paddingHorizontal: 18,
     paddingVertical: 18,
-    backgroundColor: '#FFFDF9',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E9DCC7',
+    borderColor: '#D7E6FF',
     gap: 8,
   },
   benefitCardWide: {
@@ -914,12 +914,12 @@ const styles = StyleSheet.create({
     fontSize: 23,
     lineHeight: 28,
     fontWeight: '900',
-    color: '#17382C',
+    color: '#0F172A',
   },
   benefitTitle: {
     fontSize: 14,
     lineHeight: 20,
-    color: '#62746D',
+    color: '#475569',
   },
   section: {
     gap: 16,
@@ -933,16 +933,16 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     letterSpacing: 1,
     textTransform: 'uppercase',
-    color: '#B45C34',
+    color: '#2563EB',
   },
   sectionEyebrowInverse: {
-    color: '#F4C987',
+    color: '#93C5FD',
   },
   sectionTitle: {
     fontSize: 29,
     lineHeight: 34,
     fontWeight: '900',
-    color: '#152D23',
+    color: '#0F172A',
   },
   sectionTitleInverse: {
     color: '#FFFFFF',
@@ -950,18 +950,18 @@ const styles = StyleSheet.create({
   sectionDescription: {
     fontSize: 15,
     lineHeight: 23,
-    color: '#566860',
+    color: '#475569',
   },
   sectionDescriptionInverse: {
-    color: '#C8DBD1',
+    color: '#CBD5E1',
   },
   detailLeadCard: {
     borderRadius: 28,
     paddingHorizontal: 20,
     paddingVertical: 20,
-    backgroundColor: '#FFF8ED',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E9D8BF',
+    borderColor: '#D7E6FF',
     gap: 16,
   },
   detailLeadText: {
@@ -971,19 +971,19 @@ const styles = StyleSheet.create({
     fontSize: 20,
     lineHeight: 25,
     fontWeight: '900',
-    color: '#17372C',
+    color: '#0F172A',
   },
   detailLeadBody: {
     fontSize: 14,
     lineHeight: 22,
-    color: '#5C6F67',
+    color: '#475569',
   },
   detailLeadActions: {
     gap: 10,
   },
   inlineActionPrimary: {
     borderRadius: 18,
-    backgroundColor: '#163B2E',
+    backgroundColor: '#2563EB',
     paddingVertical: 15,
     paddingHorizontal: 16,
     alignItems: 'center',
@@ -995,9 +995,9 @@ const styles = StyleSheet.create({
   },
   inlineActionGhost: {
     borderRadius: 18,
-    backgroundColor: '#F6E9D3',
+    backgroundColor: '#EFF6FF',
     borderWidth: 1,
-    borderColor: '#E3D0B1',
+    borderColor: '#BFDBFE',
     paddingVertical: 15,
     paddingHorizontal: 16,
     alignItems: 'center',
@@ -1005,7 +1005,7 @@ const styles = StyleSheet.create({
   inlineActionGhostLabel: {
     fontSize: 14,
     fontWeight: '900',
-    color: '#17372C',
+    color: '#1D4ED8',
   },
   storyColumn: {
     gap: 14,
@@ -1014,7 +1014,7 @@ const styles = StyleSheet.create({
     height: 240,
     borderRadius: 30,
     overflow: 'hidden',
-    backgroundColor: '#E7D8BF',
+    backgroundColor: '#DBEAFE',
   },
   storyCardFeatured: {
     height: 290,
@@ -1032,7 +1032,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '800',
-    color: '#DFE9E2',
+    color: '#BFDBFE',
     marginBottom: 6,
   },
   storyTitle: {
@@ -1045,7 +1045,7 @@ const styles = StyleSheet.create({
   storyBody: {
     fontSize: 14,
     lineHeight: 21,
-    color: '#F0F6F3',
+    color: '#E2E8F0',
   },
   flowColumn: {
     gap: 12,
@@ -1056,9 +1056,9 @@ const styles = StyleSheet.create({
     borderRadius: 26,
     paddingHorizontal: 18,
     paddingVertical: 18,
-    backgroundColor: '#FFFDF8',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E9DCC7',
+    borderColor: '#D7E6FF',
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 14,
@@ -1069,7 +1069,7 @@ const styles = StyleSheet.create({
     left: 0,
     bottom: 0,
     width: 6,
-    backgroundColor: '#D96C3B',
+    backgroundColor: '#2563EB',
   },
   flowIndex: {
     width: 38,
@@ -1077,7 +1077,7 @@ const styles = StyleSheet.create({
     borderRadius: 19,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#173B2E',
+    backgroundColor: '#2563EB',
   },
   flowIndexText: {
     fontSize: 14,
@@ -1092,18 +1092,20 @@ const styles = StyleSheet.create({
     fontSize: 17,
     lineHeight: 23,
     fontWeight: '800',
-    color: '#193126',
+    color: '#0F172A',
   },
   flowBody: {
     fontSize: 14,
     lineHeight: 22,
-    color: '#586B63',
+    color: '#475569',
   },
   pushSection: {
     borderRadius: 32,
     paddingHorizontal: 20,
     paddingVertical: 22,
     gap: 18,
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
   },
   pushList: {
     gap: 12,
@@ -1123,7 +1125,7 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#F6C97F',
+    backgroundColor: '#93C5FD',
     marginTop: 7,
   },
   pushTextArea: {
@@ -1139,7 +1141,7 @@ const styles = StyleSheet.create({
   pushBody: {
     fontSize: 13,
     lineHeight: 20,
-    color: '#D6E6DE',
+    color: '#CBD5E1',
   },
   pushFooter: {
     gap: 10,
@@ -1148,12 +1150,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingVertical: 16,
     alignItems: 'center',
-    backgroundColor: '#F3E0BA',
+    backgroundColor: '#DBEAFE',
   },
   permissionButtonText: {
     fontSize: 15,
     fontWeight: '900',
-    color: '#163B2E',
+    color: '#1D4ED8',
   },
   permissionHelper: {
     fontSize: 13,
@@ -1163,7 +1165,7 @@ const styles = StyleSheet.create({
   permissionHint: {
     fontSize: 12,
     lineHeight: 18,
-    color: '#C6D8CF',
+    color: '#BFDBFE',
   },
   permissionGateScreen: {
     flex: 1,
@@ -1176,7 +1178,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 24,
     borderWidth: 1,
-    borderColor: '#E8D6BB',
+    borderColor: '#D7E6FF',
     gap: 18,
     overflow: 'hidden',
   },
@@ -1185,46 +1187,46 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.72)',
+    backgroundColor: '#EFF6FF',
     borderWidth: 1,
-    borderColor: '#E6D9C7',
+    borderColor: '#BFDBFE',
   },
   permissionGateBadgeText: {
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '800',
-    color: '#284538',
+    color: '#1D4ED8',
   },
   permissionGateTitle: {
     fontSize: 34,
     lineHeight: 40,
     fontWeight: '900',
-    color: '#143327',
+    color: '#0F172A',
   },
   permissionGateBody: {
     fontSize: 15,
     lineHeight: 24,
-    color: '#4F665D',
+    color: '#475569',
   },
   permissionGatePanel: {
     borderRadius: 24,
     paddingHorizontal: 18,
     paddingVertical: 18,
-    backgroundColor: 'rgba(255,255,255,0.68)',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E7D8C3',
+    borderColor: '#D7E6FF',
     gap: 8,
   },
   permissionGatePanelTitle: {
     fontSize: 16,
     lineHeight: 20,
     fontWeight: '900',
-    color: '#17372C',
+    color: '#0F172A',
   },
   permissionGatePanelBody: {
     fontSize: 14,
     lineHeight: 22,
-    color: '#5C6F67',
+    color: '#475569',
   },
   permissionGateActions: {
     gap: 10,
@@ -1234,21 +1236,21 @@ const styles = StyleSheet.create({
     minHeight: 56,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.68)',
+    backgroundColor: '#F8FBFF',
     borderWidth: 1,
-    borderColor: '#D8C6AB',
+    borderColor: '#D7E6FF',
   },
   permissionGateDisabledLabel: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#60726A',
+    color: '#475569',
   },
   permissionGatePrimaryButton: {
     borderRadius: 20,
     minHeight: 56,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#163B2E',
+    backgroundColor: '#2563EB',
   },
   permissionGatePrimaryLabel: {
     fontSize: 15,
@@ -1260,14 +1262,14 @@ const styles = StyleSheet.create({
     minHeight: 56,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.72)',
+    backgroundColor: '#EFF6FF',
     borderWidth: 1,
-    borderColor: '#D8C6AB',
+    borderColor: '#BFDBFE',
   },
   permissionGateSecondaryLabel: {
     fontSize: 15,
     fontWeight: '900',
-    color: '#17372C',
+    color: '#1D4ED8',
   },
   supportGrid: {
     gap: 14,
@@ -1280,26 +1282,26 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     paddingHorizontal: 20,
     paddingVertical: 20,
-    backgroundColor: '#FFFDF9',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E9DCC7',
+    borderColor: '#D7E6FF',
     gap: 10,
   },
   supportBrand: {
     fontSize: 28,
     lineHeight: 32,
     fontWeight: '900',
-    color: '#17372C',
+    color: '#0F172A',
   },
   supportHours: {
     fontSize: 13,
     lineHeight: 18,
-    color: '#5D7268',
+    color: '#475569',
   },
   supportBody: {
     fontSize: 14,
     lineHeight: 22,
-    color: '#52655D',
+    color: '#475569',
   },
   supportButtonStack: {
     marginTop: 4,
@@ -1310,9 +1312,9 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     paddingHorizontal: 20,
     paddingVertical: 20,
-    backgroundColor: '#F5E7D0',
+    backgroundColor: '#EFF6FF',
     borderWidth: 1,
-    borderColor: '#E2CFB0',
+    borderColor: '#BFDBFE',
     gap: 10,
   },
   supportCompactEyebrow: {
@@ -1321,23 +1323,23 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     textTransform: 'uppercase',
     letterSpacing: 1,
-    color: '#BC6138',
+    color: '#2563EB',
   },
   supportCompactTitle: {
     fontSize: 21,
     lineHeight: 27,
     fontWeight: '900',
-    color: '#183628',
+    color: '#0F172A',
   },
   supportCompactBody: {
     fontSize: 14,
     lineHeight: 21,
-    color: '#53675E',
+    color: '#475569',
   },
   supportCompactMeta: {
     fontSize: 12,
     lineHeight: 18,
-    color: '#5B7067',
+    color: '#64748B',
   },
   floatingChatButton: {
     position: 'absolute',
@@ -1346,11 +1348,11 @@ const styles = StyleSheet.create({
     width: 84,
     height: 84,
     borderRadius: 42,
-    backgroundColor: '#D86F3C',
+    backgroundColor: '#2563EB',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 2,
-    shadowColor: '#8A431D',
+    shadowColor: '#1D4ED8',
     shadowOpacity: 0.26,
     shadowOffset: { width: 0, height: 12 },
     shadowRadius: 18,
@@ -1360,7 +1362,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     lineHeight: 12,
     fontWeight: '800',
-    color: '#FFE9D9',
+    color: '#DBEAFE',
   },
   floatingChatLabel: {
     fontSize: 18,
