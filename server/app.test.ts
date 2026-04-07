@@ -6,6 +6,7 @@ import request from 'supertest';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { DEFAULT_APP_CONTENT } from '../src/data/content';
+import { createActivityStore } from './activityStore';
 import { createContentServer } from './app';
 
 const ADMIN_USER = 'admin';
@@ -47,6 +48,9 @@ async function createTestApp(options: TestAppOptions = {}) {
     port: 4100,
     projectRoot,
     contentFilePath,
+    activityStore: createActivityStore({
+      databaseUrl: '',
+    }),
     adminUser: ADMIN_USER,
     adminPassword: ADMIN_PASSWORD,
     allowedOrigins: ['http://allowed.example'],
@@ -77,6 +81,7 @@ describe('content server', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.ok).toBe(true);
+    expect(response.body.activityStoreMode).toBe('memory');
   });
 
   it('returns content JSON', async () => {
@@ -87,6 +92,47 @@ describe('content server', () => {
     expect(response.status).toBe(200);
     expect(response.body.business.brandName).toBe(DEFAULT_APP_CONTENT.business.brandName);
     expect(response.body.schemaVersion).toBe(1);
+  });
+
+  it('registers a device activity payload', async () => {
+    const { app } = await createTestApp();
+
+    const response = await request(app)
+      .post('/api/device/register')
+      .send({
+        installationId: 'install_test_1',
+        customerExternalId: 'customer-001',
+        platform: 'android',
+        appVersion: '1.0.0',
+        expoPushToken: 'ExponentPushToken[test-token]',
+        pushPermissionGranted: true,
+        deviceLabel: 'Galaxy S24',
+        deviceOsVersion: '14',
+      });
+
+    expect(response.status).toBe(201);
+    expect(response.body.installationId).toBe('install_test_1');
+    expect(response.body.customerExternalId).toBe('customer-001');
+    expect(response.body.storageMode).toBe('memory');
+  });
+
+  it('records an app open event', async () => {
+    const { app } = await createTestApp();
+
+    const response = await request(app)
+      .post('/api/app-open')
+      .send({
+        installationId: 'install_test_2',
+        customerExternalId: 'customer-002',
+        openedAt: new Date().toISOString(),
+        source: 'launch',
+        appVersion: '1.0.0',
+      });
+
+    expect(response.status).toBe(201);
+    expect(response.body.installationId).toBe('install_test_2');
+    expect(response.body.source).toBe('launch');
+    expect(response.body.storageMode).toBe('memory');
   });
 
   it('rejects admin page without auth', async () => {
@@ -116,6 +162,31 @@ describe('content server', () => {
       .send(DEFAULT_APP_CONTENT);
 
     expect(response.status).toBe(401);
+  });
+
+  it('creates and lists push campaigns with auth', async () => {
+    const { app } = await createTestApp();
+
+    const createResponse = await request(app)
+      .post('/api/push/campaigns')
+      .auth(ADMIN_USER, ADMIN_PASSWORD)
+      .send({
+        title: '월말 리마인드',
+        message: '이번 달 마감 전에 다시 확인해보세요.',
+        audienceLabel: '휴면 고객',
+        scheduledFor: null,
+        createdBy: 'admin',
+      });
+    const listResponse = await request(app)
+      .get('/api/push/campaigns')
+      .auth(ADMIN_USER, ADMIN_PASSWORD);
+
+    expect(createResponse.status).toBe(201);
+    expect(createResponse.body.title).toBe('월말 리마인드');
+    expect(createResponse.body.storageMode).toBe('memory');
+    expect(listResponse.status).toBe(200);
+    expect(listResponse.body).toHaveLength(1);
+    expect(listResponse.body[0].title).toBe('월말 리마인드');
   });
 
   it('saves valid content with auth', async () => {

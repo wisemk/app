@@ -14,6 +14,12 @@ export type NotificationAccessState = {
   requiresSettings: boolean;
 };
 
+export type PushRegistrationSnapshot = {
+  expoPushToken: string | null;
+  projectId: string | null;
+  permissionGranted: boolean;
+};
+
 type NotificationAccessOptions = {
   autoPromptOnce?: boolean;
   requestIfPossible?: boolean;
@@ -32,7 +38,7 @@ async function ensureMarketingChannel() {
     name: 'marketing',
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 200, 200],
-    lightColor: '#D96C3B',
+    lightColor: '#2563EB',
   });
 
   hasEnsuredMarketingChannel = true;
@@ -47,7 +53,7 @@ function getDeniedMessage(requiresSettings: boolean) {
 }
 
 function getPermissionErrorMessage() {
-  return '알림 권한 확인 중 문제가 생겼습니다. 다시 확인해 주세요.';
+  return '알림 권한을 확인하는 중 문제가 생겼습니다. 다시 확인해 주세요.';
 }
 
 async function requestNotificationPermissions() {
@@ -61,18 +67,42 @@ async function requestNotificationPermissions() {
   });
 }
 
-async function buildGrantedStatusMessage() {
+export async function getPushRegistrationSnapshot(): Promise<PushRegistrationSnapshot> {
   const projectId = getExpoProjectId();
+  const permissions = await Notifications.getPermissionsAsync();
+  const permissionGranted = permissions.granted || permissions.status === 'granted';
 
-  if (!projectId) {
-    return '알림 권한은 허용됐지만 Expo 푸시 토큰 발급에는 projectId 설정이 더 필요합니다.';
+  if (!permissionGranted || !projectId) {
+    return {
+      expoPushToken: null,
+      projectId: projectId ?? null,
+      permissionGranted,
+    };
   }
 
   const expoPushToken = await Notifications.getExpoPushTokenAsync({
     projectId,
   });
 
-  return `알림 권한이 허용됐고 Expo 푸시 토큰까지 발급됐습니다.\n테스트용 토큰: ${expoPushToken.data}`;
+  return {
+    expoPushToken: expoPushToken.data,
+    projectId,
+    permissionGranted,
+  };
+}
+
+async function buildGrantedStatusMessage() {
+  const registrationSnapshot = await getPushRegistrationSnapshot();
+
+  if (!registrationSnapshot.projectId) {
+    return '알림 권한은 허용됐지만 Expo 푸시 토큰 발급에는 projectId 설정이 필요합니다.';
+  }
+
+  if (!registrationSnapshot.expoPushToken) {
+    return '알림 권한은 허용됐지만 푸시 토큰이 아직 발급되지 않았습니다.';
+  }
+
+  return `알림 권한이 허용됐고 Expo 푸시 토큰까지 발급됐습니다.\n테스트용 토큰: ${registrationSnapshot.expoPushToken}`;
 }
 
 export async function getNotificationAccessState(
@@ -83,7 +113,7 @@ export async function getNotificationAccessState(
       return {
         granted: true,
         requiresSettings: false,
-        message: '개발 미리보기에서는 실제 기기 알림 권한 없이도 화면 확인이 가능합니다.',
+        message: '개발 미리보기에서는 실제 기기 권한 없이도 화면 확인이 가능합니다.',
       };
     }
 
@@ -152,7 +182,7 @@ export async function requestPushPermissionStatus() {
       error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
 
     if (message.includes('projectId')) {
-      return '알림 권한은 허용됐지만 Expo 푸시 토큰 발급에는 projectId 설정이 더 필요합니다.';
+      return '알림 권한은 허용됐지만 Expo 푸시 토큰 발급에는 projectId 설정이 필요합니다.';
     }
 
     return `알림 권한은 허용됐지만 푸시 토큰 발급은 아직 완료되지 않았습니다. 원인: ${message}`;

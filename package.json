@@ -14,6 +14,7 @@
     "web": "expo start --web",
     "server": "tsx server/index.ts",
     "server:watch": "tsx watch server/index.ts",
+    "db:init": "tsx server/db/applySchema.ts",
     "test": "vitest run"
   },
   "dependencies": {
@@ -27,6 +28,7 @@
     "expo-notifications": "~55.0.16",
     "expo-status-bar": "~55.0.5",
     "express": "^5.2.1",
+    "pg": "^8.20.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-native": "0.83.4",
@@ -38,6 +40,7 @@
     "@expo/ngrok": "^4.1.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "@types/pg": "^8.20.0",
     "@types/react": "~19.2.10",
     "@types/supertest": "^7.2.0",
     "supertest": "^7.2.2",

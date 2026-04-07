@@ -3,8 +3,14 @@ import express, { type NextFunction, type Request, type Response } from 'express
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
+import { createActivityStore, type ActivityStore } from './activityStore';
 import { DEFAULT_APP_CONTENT } from '../src/data/content';
 import { appContentSchema } from '../src/shared/contentSchema';
+import {
+  createPushCampaignRequestSchema,
+  recordAppOpenRequestSchema,
+  registerDeviceRequestSchema,
+} from '../src/shared/engagementSchema';
 import type { AppContent } from '../src/types/content';
 
 type ContentServerOptions = {
@@ -15,6 +21,7 @@ type ContentServerOptions = {
   projectRoot?: string;
   contentFilePath?: string;
   contentSeedFilePath?: string;
+  activityStore?: ActivityStore;
 };
 
 export function createContentServer(options: ContentServerOptions = {}) {
@@ -26,6 +33,8 @@ export function createContentServer(options: ContentServerOptions = {}) {
     options.adminPassword ?? process.env.CONTENT_SERVER_ADMIN_PASSWORD ?? 'change-me';
   const adminRateLimitWindowMs = 60 * 1000;
   const adminRateLimitMax = 30;
+  const publicRateLimitWindowMs = 60 * 1000;
+  const publicRateLimitMax = 120;
   const allowedOrigins = new Set(
     (
       options.allowedOrigins ??
@@ -47,6 +56,8 @@ export function createContentServer(options: ContentServerOptions = {}) {
   const adminPagePath = path.resolve(projectRoot, 'server', 'public', 'admin.html');
   const contentPathsAreShared =
     path.resolve(contentSeedFilePath) === path.resolve(contentFilePath);
+  const activityStore = options.activityStore ?? createActivityStore();
+  const rateLimitSweepIntervalMs = 60 * 1000;
 
   let writeInProgress = false;
 
@@ -57,6 +68,18 @@ export function createContentServer(options: ContentServerOptions = {}) {
       resetAt: number;
     }
   >();
+  const publicRateLimitState = new Map<
+    string,
+    {
+      count: number;
+      resetAt: number;
+    }
+  >();
+  const rateLimitSweepTimer = setInterval(() => {
+    pruneExpiredRateLimitEntries(rateLimitState);
+    pruneExpiredRateLimitEntries(publicRateLimitState);
+  }, rateLimitSweepIntervalMs);
+  rateLimitSweepTimer.unref();
 
   app.set('trust proxy', true);
   app.disable('x-powered-by');
@@ -64,6 +87,24 @@ export function createContentServer(options: ContentServerOptions = {}) {
 
   function getSingleHeaderValue(value: string | string[] | undefined) {
     return Array.isArray(value) ? value[0] : value;
+  }
+
+  function pruneExpiredRateLimitEntries(
+    state: Map<
+      string,
+      {
+        count: number;
+        resetAt: number;
+      }
+    >,
+  ) {
+    const now = Date.now();
+
+    state.forEach((value, key) => {
+      if (value.resetAt < now) {
+        state.delete(key);
+      }
+    });
   }
 
   function isSameOriginRequest(req: CorsRequest, origin: string) {
@@ -79,7 +120,7 @@ export function createContentServer(options: ContentServerOptions = {}) {
   }
 
   app.use(
-    '/api/content',
+    '/api',
     cors((req, callback) => {
       const origin = getSingleHeaderValue(req.headers.origin);
 
@@ -103,7 +144,7 @@ export function createContentServer(options: ContentServerOptions = {}) {
     }),
   );
 
-  app.use('/api/content', (error: Error, _req: Request, res: Response, next: NextFunction) => {
+  app.use('/api', (error: Error, _req: Request, res: Response, next: NextFunction) => {
     if (error.message === 'Origin not allowed') {
       res.status(403).json({
         message: 'This origin is not allowed to access the content API.',
@@ -135,6 +176,31 @@ export function createContentServer(options: ContentServerOptions = {}) {
     if (existing.count >= adminRateLimitMax) {
       res.status(429).json({
         message: 'Too many admin requests. Try again in a minute.',
+      });
+      return;
+    }
+
+    existing.count += 1;
+    next();
+  }
+
+  function publicRateLimit(req: Request, res: Response, next: NextFunction) {
+    const now = Date.now();
+    const key = `${req.ip}:${req.path}`;
+    const existing = publicRateLimitState.get(key);
+
+    if (!existing || existing.resetAt < now) {
+      publicRateLimitState.set(key, {
+        count: 1,
+        resetAt: now + publicRateLimitWindowMs,
+      });
+      next();
+      return;
+    }
+
+    if (existing.count >= publicRateLimitMax) {
+      res.status(429).json({
+        message: 'Too many public activity requests. Try again in a minute.',
       });
       return;
     }
@@ -244,7 +310,53 @@ export function createContentServer(options: ContentServerOptions = {}) {
     res.json({
       ok: true,
       port,
+      activityStoreMode: activityStore.mode,
+      activityStorePersistent: activityStore.isPersistent,
     });
+  });
+
+  app.post('/api/device/register', publicRateLimit, async (req, res) => {
+    const validation = registerDeviceRequestSchema.safeParse(req.body);
+
+    if (!validation.success) {
+      res.status(400).json({
+        message: 'Invalid device registration payload.',
+        issues: validation.error.issues,
+      });
+      return;
+    }
+
+    try {
+      const registration = await activityStore.registerDevice(validation.data);
+      res.status(201).json(registration);
+    } catch (error) {
+      console.error('Failed to register device activity', error);
+      res.status(500).json({
+        message: 'Failed to register device activity.',
+      });
+    }
+  });
+
+  app.post('/api/app-open', publicRateLimit, async (req, res) => {
+    const validation = recordAppOpenRequestSchema.safeParse(req.body);
+
+    if (!validation.success) {
+      res.status(400).json({
+        message: 'Invalid app open payload.',
+        issues: validation.error.issues,
+      });
+      return;
+    }
+
+    try {
+      const appOpen = await activityStore.recordAppOpen(validation.data);
+      res.status(201).json(appOpen);
+    } catch (error) {
+      console.error('Failed to record app open', error);
+      res.status(500).json({
+        message: 'Failed to record app open.',
+      });
+    }
   });
 
   app.get('/api/content', async (_req, res) => {
@@ -331,6 +443,44 @@ export function createContentServer(options: ContentServerOptions = {}) {
     }
   });
 
+  app.get('/api/push/campaigns', adminRateLimit, requireAdminAuth, async (req, res) => {
+    const limit = Number(req.query.limit ?? 20);
+
+    try {
+      const campaigns = await activityStore.listPushCampaigns(
+        Number.isFinite(limit) ? Math.max(1, Math.min(limit, 100)) : 20,
+      );
+      res.json(campaigns);
+    } catch (error) {
+      console.error('Failed to list push campaigns', error);
+      res.status(500).json({
+        message: 'Failed to list push campaigns.',
+      });
+    }
+  });
+
+  app.post('/api/push/campaigns', adminRateLimit, requireAdminAuth, async (req, res) => {
+    const validation = createPushCampaignRequestSchema.safeParse(req.body);
+
+    if (!validation.success) {
+      res.status(400).json({
+        message: 'Invalid push campaign payload.',
+        issues: validation.error.issues,
+      });
+      return;
+    }
+
+    try {
+      const campaign = await activityStore.createPushCampaign(validation.data);
+      res.status(201).json(campaign);
+    } catch (error) {
+      console.error('Failed to create push campaign', error);
+      res.status(500).json({
+        message: 'Failed to create push campaign.',
+      });
+    }
+  });
+
   app.get('/admin', adminRateLimit, requireAdminAuth, (_req, res) => {
     res.sendFile(adminPagePath);
   });
@@ -343,6 +493,11 @@ export function createContentServer(options: ContentServerOptions = {}) {
     app,
     port,
     adminPassword,
+    activityStoreMode: activityStore.mode,
     ensureContentFile,
+    close: async () => {
+      clearInterval(rateLimitSweepTimer);
+      await activityStore.close();
+    },
   };
 }

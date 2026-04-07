@@ -18,9 +18,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { DEFAULT_APP_CONTENT } from './src/data/content';
 import {
   getNotificationAccessState,
+  getPushRegistrationSnapshot,
   openAppNotificationSettings,
   requestPushPermissionStatus,
 } from './src/services/notifications';
+import {
+  recordCurrentAppOpen,
+  registerCurrentDevice,
+} from './src/services/customerActivity';
 import {
   getDefaultContentState,
   getStartupContentState,
@@ -159,6 +164,8 @@ function LandingSectionHeader({
 }
 
 const FOREGROUND_REFRESH_COOLDOWN_MS = 5 * 60 * 1000;
+const APP_OPEN_COOLDOWN_MS = 60 * 1000;
+const DEVICE_REGISTRATION_COOLDOWN_MS = 6 * 60 * 60 * 1000;
 
 export default function App() {
   const { width } = useWindowDimensions();
@@ -177,6 +184,8 @@ export default function App() {
   });
   const [refreshing, setRefreshing] = useState(false);
   const lastRemoteCheckAtRef = useRef(0);
+  const lastAppOpenTrackedAtRef = useRef(0);
+  const lastDeviceRegistrationAtRef = useRef(0);
   const hasBootstrappedContentRef = useRef(false);
 
   const content = contentState.content ?? DEFAULT_APP_CONTENT;
@@ -205,6 +214,40 @@ export default function App() {
     const refreshedState = await runRemoteRefresh(true);
     if (refreshedState) {
       setContentState(refreshedState);
+    }
+  };
+
+  const syncCustomerActivity = async (source: 'launch' | 'foreground') => {
+    const now = Date.now();
+    const shouldRegisterDevice =
+      now - lastDeviceRegistrationAtRef.current >= DEVICE_REGISTRATION_COOLDOWN_MS;
+    const shouldRecordAppOpen =
+      source === 'launch' || now - lastAppOpenTrackedAtRef.current >= APP_OPEN_COOLDOWN_MS;
+
+    if (!shouldRegisterDevice && !shouldRecordAppOpen) {
+      return;
+    }
+
+    try {
+      if (shouldRegisterDevice) {
+        const pushRegistration = await getPushRegistrationSnapshot().catch(() => ({
+          expoPushToken: null,
+          projectId: null,
+          permissionGranted: false,
+        }));
+
+        if (pushRegistration.projectId) {
+          await registerCurrentDevice();
+          lastDeviceRegistrationAtRef.current = now;
+        }
+      }
+
+      if (shouldRecordAppOpen) {
+        await recordCurrentAppOpen(source);
+        lastAppOpenTrackedAtRef.current = now;
+      }
+    } catch (error) {
+      console.error('Failed to sync customer activity', error);
     }
   };
 
@@ -251,6 +294,7 @@ export default function App() {
       }
 
       await bootstrapContent();
+      await syncCustomerActivity('launch');
     };
 
     void bootstrap();
@@ -269,6 +313,7 @@ export default function App() {
 
         if (!hasBootstrappedContentRef.current) {
           await bootstrapContent();
+          await syncCustomerActivity('launch');
           return;
         }
 
@@ -276,6 +321,8 @@ export default function App() {
         if (nextContentState) {
           applyState(nextContentState);
         }
+
+        await syncCustomerActivity('foreground');
       })();
     });
 

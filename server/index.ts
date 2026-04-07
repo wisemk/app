@@ -19,6 +19,12 @@ const listener = server.app.listen(server.port, async () => {
     );
   }
 
+  if (server.activityStoreMode !== 'postgres') {
+    console.warn(
+      'Activity APIs are running without Postgres. Device registrations and app opens will not persist after restart.',
+    );
+  }
+
   console.log(`Content server listening on http://localhost:${server.port}`);
   console.log(`Admin page: http://localhost:${server.port}/admin`);
 });
@@ -41,8 +47,15 @@ function shutdown(signal: NodeJS.Signals) {
   forceExitTimer.unref();
 
   listener.close(() => {
-    clearTimeout(forceExitTimer);
-    process.exit(0);
+    void server
+      .close()
+      .catch((error) => {
+        console.error('Failed to close activity store cleanly.', error);
+      })
+      .finally(() => {
+        clearTimeout(forceExitTimer);
+        process.exit(0);
+      });
   });
 }
 
