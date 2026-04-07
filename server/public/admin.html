@@ -272,17 +272,15 @@
         </aside>
 
         <div class="workspace">
-          <section class="sidebar-panel push-console">
-            <div class="panel-head">
+          <details class="section push-console-section" data-section-id="push-console">
+            <summary class="section-head">
               <div>
-                <div class="panel-kicker">Push Console</div>
-                <div class="panel-title">푸시 발송</div>
+                <div class="section-title">푸시 발송</div>
               </div>
-              <div class="summary-actions">
-                <button class="button secondary small" id="push-receipt-sync-button" type="button">발송 결과 확인</button>
-              </div>
-            </div>
-            <div class="push-console-grid">
+              <div class="section-badge">실행</div>
+            </summary>
+            <div class="section-body">
+              <div class="push-console-grid">
               <article class="summary-card">
                 <div class="summary-label">즉시 발송</div>
                 <div class="grid">
@@ -306,6 +304,7 @@
                 <div class="field-actions">
                   <button class="button secondary small" id="push-draft-button" type="button">초안 저장</button>
                   <button class="button primary small" id="push-send-button" type="button">지금 발송</button>
+                  <button class="button secondary small" id="push-receipt-sync-button" type="button">발송 결과 확인</button>
                 </div>
                 <div class="status" id="push-status-text">푸시 상태를 불러오는 중...</div>
               </article>
@@ -313,8 +312,9 @@
                 <div class="summary-label">최근 캠페인</div>
                 <div class="campaign-list" id="push-campaign-list"></div>
               </article>
+              </div>
             </div>
-          </section>
+          </details>
           <section class="sections" id="editor-root"></section>
         </div>
       </div>
@@ -357,6 +357,16 @@
       let isPushReceiptSyncing = false;
       let tooltipIdCounter = 0;
       const openSections = new Set();
+      const pushConsoleSection = document.querySelector(
+        'details.section[data-section-id="push-console"]',
+      );
+
+      if (pushConsoleSection) {
+        pushConsoleSection.addEventListener('toggle', () => {
+          if (pushConsoleSection.open) openSections.add('push-console');
+          else openSections.delete('push-console');
+        });
+      }
 
       const SECTION_CONFIG = [
         {
@@ -1038,6 +1048,22 @@
       function renderQuickNav() {
         if (!navRoot) return;
         navRoot.innerHTML = '';
+
+        const pushButton = createElement('button', 'nav-link');
+        pushButton.type = 'button';
+        pushButton.appendChild(createElement('span', 'nav-link-title', '푸시 발송'));
+        pushButton.addEventListener('click', () => {
+          const target = document.querySelector(
+            'details.section[data-section-id="push-console"]',
+          );
+          if (!target) return;
+          target.open = true;
+          openSections.add('push-console');
+          requestAnimationFrame(() => {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+        });
+        navRoot.appendChild(pushButton);
 
         ACTIVE_SECTION_CONFIG.forEach((section) => {
           const button = createElement('button', 'nav-link');
