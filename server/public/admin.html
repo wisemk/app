@@ -576,6 +576,72 @@
         },
       ];
 
+      const ACTIVE_SECTION_CONFIG = [
+        {
+          id: 'business',
+          title: '기본 링크',
+          blocks: [
+            {
+              type: 'object',
+              path: 'business',
+              title: '운영값',
+              columns: 2,
+              fields: [
+                { key: 'brandName', label: '브랜드명' },
+                { key: 'phoneNumber', label: '전화번호', kind: 'tel', hint: '전화 연결용 번호' },
+                { key: 'detailPageUrl', label: '상세 링크', kind: 'url', hint: 'https://...' },
+                { key: 'channelTalkUrl', label: '상담 링크', kind: 'url', hint: 'https://...' },
+              ],
+            },
+          ],
+        },
+        {
+          id: 'detail-panels',
+          title: '상세 이미지',
+          blocks: [
+            {
+              type: 'object-array',
+              path: 'detailPanels',
+              title: '이미지 카드',
+              itemLabel: '이미지',
+              addLabel: '이미지 추가',
+              template: {
+                eyebrow: '상세',
+                title: '새 이미지',
+                description: '설명 문구를 입력하세요.',
+                imageUrl: 'https://example.com/image.jpg',
+              },
+              minItems: 1,
+              fields: [
+                { key: 'eyebrow', label: '짧은 제목' },
+                { key: 'title', label: '큰 제목' },
+                { key: 'description', label: '설명', multiline: true },
+                { key: 'imageUrl', label: '이미지 URL', kind: 'image', hint: 'https://.../image.jpg' },
+              ],
+            },
+          ],
+        },
+        {
+          id: 'push',
+          title: '푸시 문구',
+          blocks: [
+            {
+              type: 'object-array',
+              path: 'pushCampaigns',
+              title: '푸시 템플릿',
+              itemLabel: '푸시',
+              addLabel: '푸시 추가',
+              template: { title: '새 알림', message: '보낼 메시지를 입력하세요.' },
+              minItems: 1,
+              fields: [
+                { key: 'title', label: '제목' },
+                { key: 'message', label: '메시지', multiline: true },
+              ],
+            },
+          ],
+        },
+      ];
+
       function cloneValue(value) {
         return JSON.parse(JSON.stringify(value));
       }
@@ -973,7 +1039,7 @@
         if (!navRoot) return;
         navRoot.innerHTML = '';
 
-        SECTION_CONFIG.forEach((section) => {
+        ACTIVE_SECTION_CONFIG.forEach((section) => {
           const button = createElement('button', 'nav-link');
           button.type = 'button';
           button.appendChild(createElement('span', 'nav-link-title', section.title));
@@ -1241,7 +1307,7 @@
 
       function renderEditor() {
         editorRoot.innerHTML = '';
-        SECTION_CONFIG.forEach((section, index) => {
+        ACTIVE_SECTION_CONFIG.forEach((section, index) => {
           editorRoot.appendChild(renderSection(section, index));
         });
         renderQuickNav();
