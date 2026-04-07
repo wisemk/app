@@ -628,13 +628,17 @@
         });
       }
 
+      function shouldShowFieldHint(field) {
+        return field.kind === 'url' || field.kind === 'image';
+      }
+
       function createField(path, field, value) {
         const wrapper = createElement('div', 'field');
         const labelRow = createElement('div', 'label-row');
         const label = createElement('label', '', field.label);
         label.htmlFor = path;
         labelRow.appendChild(label);
-        if (field.hint) {
+        if (field.hint && shouldShowFieldHint(field)) {
           labelRow.appendChild(createInfoTip(field.hint, `${field.label} 도움말`));
         }
         wrapper.appendChild(labelRow);
@@ -703,9 +707,6 @@
         const text = document.createElement('div');
         const titleRow = createElement('div', 'info-row');
         titleRow.appendChild(createElement('div', 'panel-title', block.title));
-        if (block.description) {
-          titleRow.appendChild(createInfoTip(block.description, `${block.title} 도움말`));
-        }
         text.appendChild(titleRow);
         head.appendChild(text);
         panel.appendChild(head);
@@ -725,9 +726,6 @@
         const text = document.createElement('div');
         const titleRow = createElement('div', 'info-row');
         titleRow.appendChild(createElement('div', 'panel-title', block.title));
-        if (block.description) {
-          titleRow.appendChild(createInfoTip(block.description, `${block.title} 도움말`));
-        }
         text.appendChild(titleRow);
         head.appendChild(text);
 
@@ -766,7 +764,7 @@
           const field = createElement('div', 'field');
           const labelRow = createElement('div', 'label-row');
           labelRow.appendChild(createElement('label', '', `${block.itemLabel} 문구`));
-          if (block.hint) {
+          if (block.hint && shouldShowFieldHint(block)) {
             labelRow.appendChild(
               createInfoTip(block.hint, `${block.itemLabel} 문구 도움말`),
             );
@@ -795,9 +793,6 @@
         const text = document.createElement('div');
         const titleRow = createElement('div', 'info-row');
         titleRow.appendChild(createElement('div', 'panel-title', block.title));
-        if (block.description) {
-          titleRow.appendChild(createInfoTip(block.description, `${block.title} 도움말`));
-        }
         text.appendChild(titleRow);
         head.appendChild(text);
 
@@ -859,9 +854,6 @@
         const left = document.createElement('div');
         const titleRow = createElement('div', 'info-row');
         titleRow.appendChild(createElement('div', 'section-title', section.title));
-        if (section.description) {
-          titleRow.appendChild(createInfoTip(section.description, `${section.title} 도움말`));
-        }
         left.appendChild(titleRow);
         summary.appendChild(left);
         summary.appendChild(createElement('div', 'section-badge', `${section.blocks.length}개`));
