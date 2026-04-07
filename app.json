@@ -25,7 +25,8 @@
       "predictiveBackGestureEnabled": false
     },
     "plugins": [
-      "expo-notifications"
+      "expo-notifications",
+      "expo-dev-client"
     ],
     "web": {
       "favicon": "./assets/favicon.png"
