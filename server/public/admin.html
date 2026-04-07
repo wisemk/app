@@ -35,10 +35,14 @@
       button { cursor: pointer; }
       .page { width: min(1380px, calc(100% - 28px)); margin: 0 auto; padding: 28px 0 88px; }
       .shell {
-        display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 20px; align-items: start;
+        display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 18px; align-items: start;
       }
       .sidebar {
-        display: grid; gap: 16px;
+        display: grid; gap: 12px;
+      }
+      .brand-panel,
+      .sidebar-panel:has(#summary-brand) {
+        display: none;
       }
       .sidebar-panel, details.section {
         overflow: hidden; border: 1px solid var(--line); border-radius: 30px;
@@ -47,16 +51,12 @@
       .sidebar-panel {
         padding: 20px;
       }
-      .brand-panel {
-        border-color: rgba(216, 226, 240, 0.96);
-        background: linear-gradient(160deg, rgba(255,255,255,0.99), rgba(239,246,255,0.92));
-      }
-      .brand-panel h1 {
-        margin: 10px 0 8px; font-size: clamp(28px, 4vw, 36px); line-height: 1.02;
-      }
       .eyebrow {
         display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 900;
         letter-spacing: 0.08em; text-transform: uppercase; color: var(--orange);
+      }
+      .sidebar-title {
+        margin: 8px 0 0; font-size: 28px; line-height: 1.05; font-weight: 900;
       }
       h1 { margin: 10px 0; font-size: clamp(31px, 5vw, 43px); line-height: 1.08; }
       .panel-kicker {
@@ -67,7 +67,25 @@
       .toolbar, .summary-actions, .field-actions, .item-controls, .sidebar-actions {
         display: flex; flex-wrap: wrap; gap: 8px;
       }
-      .toolbar { flex-direction: column; align-items: stretch; margin-top: 16px; }
+      .toolbar { flex-direction: column; align-items: stretch; margin-top: 14px; gap: 10px; }
+      .toolbar-meta, .toolbar-actions {
+        display: flex; flex-wrap: wrap; gap: 8px;
+      }
+      .action-panel::before {
+        content: '콘텐츠 관리';
+        display: block;
+        margin: 8px 0 14px;
+        font-size: 28px;
+        line-height: 1.05;
+        font-weight: 900;
+        color: var(--ink);
+      }
+      .action-panel .panel-kicker {
+        display: none;
+      }
+      .action-panel .nav-list {
+        margin-top: 14px;
+      }
       .sidebar-actions { margin-top: 12px; }
       .pill, .status {
         display: inline-flex; align-items: center; min-height: 42px; padding: 10px 14px;
@@ -192,15 +210,10 @@
       .footer { margin-top: 18px; text-align: center; color: var(--muted); font-size: 13px; line-height: 1.7; }
       @media (max-width: 1120px) {
         .shell { grid-template-columns: 1fr; }
-        .sidebar { position: static; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        .brand-panel, .action-panel { grid-column: span 2; }
+        .sidebar { position: static; grid-template-columns: 1fr; }
         .info-tooltip {
           top: calc(100% + 8px); left: 0; transform: none; width: min(240px, calc(100vw - 56px));
         }
-      }
-      @media (max-width: 980px) {
-        .sidebar { grid-template-columns: 1fr; }
-        .brand-panel, .action-panel { grid-column: span 1; }
       }
       @media (max-width: 720px) {
         .page { width: min(100% - 18px, 100%); padding-top: 18px; }
@@ -335,6 +348,10 @@
       const summaryDetailButton = document.getElementById('summary-detail-button');
       const summaryChatButton = document.getElementById('summary-chat-button');
       const navRoot = document.getElementById('nav-root');
+      const actionPanel = document.querySelector('.action-panel');
+      const brandPanel = document.querySelector('.brand-panel');
+      const navPanel = navRoot?.closest('.sidebar-panel');
+      const summaryPanel = summaryBrand?.closest('.sidebar-panel');
       const pushTitleInput = document.getElementById('push-title-input');
       const pushMessageInput = document.getElementById('push-message-input');
       const pushAudienceInput = document.getElementById('push-audience-input');
@@ -360,6 +377,19 @@
       const pushConsoleSection = document.querySelector(
         'details.section[data-section-id="push-console"]',
       );
+
+      if (brandPanel) {
+        brandPanel.remove();
+      }
+
+      if (navRoot && actionPanel && navPanel && navPanel !== actionPanel) {
+        actionPanel.appendChild(navRoot);
+        navPanel.remove();
+      }
+
+      if (summaryPanel) {
+        summaryPanel.remove();
+      }
 
       if (pushConsoleSection) {
         pushConsoleSection.addEventListener('toggle', () => {
@@ -1317,7 +1347,17 @@
       }
 
       function updateSummary() {
-        if (!currentContent) return;
+        if (
+          !currentContent ||
+          !summaryBrand?.isConnected ||
+          !summaryPhone?.isConnected ||
+          !summaryDetailUrl?.isConnected ||
+          !summaryChatUrl?.isConnected ||
+          !summaryDetailButton?.isConnected ||
+          !summaryChatButton?.isConnected
+        ) {
+          return;
+        }
         summaryBrand.textContent = currentContent.business.brandName || '-';
         summaryPhone.textContent = currentContent.business.phoneNumber || '-';
         summaryDetailUrl.textContent = currentContent.business.detailPageUrl || '-';
@@ -1327,8 +1367,13 @@
       }
 
       function updateMeta(content) {
-        schemaBadge.textContent = `schema v${content.schemaVersion}`;
-        updatedBadge.textContent = `updated ${content.updatedAt}`;
+        if (schemaBadge) {
+          schemaBadge.textContent = `schema v${content.schemaVersion}`;
+        }
+
+        if (updatedBadge) {
+          updatedBadge.textContent = `updated ${content.updatedAt}`;
+        }
       }
 
       function renderEditor() {
