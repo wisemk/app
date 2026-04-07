@@ -1,0 +1,91 @@
+소액뱅크 앱 핸드오프
+
+1. 프로젝트 개요
+- Expo 기반 안드로이드 앱 + Render Node 서버 + Render Postgres 구성.
+- 앱 목적은 상세 이미지 노출, 상담 유도, 월말/월초 재방문 유도, 고객 활동 기록 기반 확장.
+- 현재 서버는 원격 콘텐츠 관리, 관리자 페이지, 기기 등록, 앱 오픈 기록, 푸시 캠페인 메타데이터 저장까지 지원한다.
+
+2. 현재 구성 요소
+- 모바일 앱: Expo / React Native
+- 콘텐츠 서버: Express
+- 관리자 페이지: server/public/admin.html
+- 운영 콘텐츠 저장: JSON 파일 + 관리자 저장
+- 활동 기록 저장: Postgres 우선, 없으면 메모리 fallback
+- 배포:
+  - Render 웹서비스: soaek-bank-content
+  - Render Postgres: soaek-bank-db
+  - EAS Build: development / preview / production 프로필 사용
+
+3. 핵심 파일
+- 앱 메인 화면: App.tsx
+- 원격 콘텐츠 기본값: src/data/content.ts
+- 원격 콘텐츠 fetch: src/services/remoteContent.ts
+- 알림 권한/푸시 토큰: src/services/notifications.ts
+- 고객 활동 전송: src/services/customerActivity.ts
+- 서버 엔트리: server/index.ts
+- 서버 라우트: server/app.ts
+- 활동 저장소: server/activityStore.ts
+- Postgres 스키마: server/db/schema.sql
+- 스키마 적용 스크립트: server/db/applySchema.ts
+- 관리자 페이지: server/public/admin.html
+- Render 설정: render.yaml
+- 환경변수 예시: .env.example
+- 활동 기록 설명: docs/postgres-activity.md
+
+4. 필요한 환경변수
+- 앱/로컬
+  - EXPO_PUBLIC_REMOTE_CONTENT_URL
+  - EXPO_PUBLIC_APP_API_BASE_URL
+- 서버
+  - CONTENT_SERVER_PORT
+  - CONTENT_FILE_PATH
+  - CONTENT_SERVER_ADMIN_USER
+  - CONTENT_SERVER_ADMIN_PASSWORD
+  - CONTENT_SERVER_ALLOWED_ORIGINS
+  - DATABASE_URL
+  - DATABASE_SSL
+  - DATABASE_SSL_REJECT_UNAUTHORIZED
+  - APP_OPEN_RETENTION_DAYS
+
+5. 로컬 실행 순서
+- npm install
+- 서버 실행: npm run server
+- 앱 실행: npm start
+- 개발용 DB 스키마 적용: npm run db:init
+- 미리보기는 상위 폴더의 run-preview.bat 사용 가능
+
+6. 배포 관련
+- Render는 콘텐츠 서버와 DB를 담당한다.
+- EAS는 앱 빌드 담당이다.
+- Render Postgres를 새로 만들면 먼저 외부 접속 문자열로 npm run db:init 실행 후, 웹서비스 환경변수에 내부 접속 문자열을 넣는다.
+- 앱 코드만 바뀌면 설치된 앱은 자동 갱신되지 않는다. Dev Build 연결 또는 새 EAS 빌드가 필요하다.
+
+7. 현재 검증된 상태
+- TypeScript 타입체크 통과
+- Vitest 서버 테스트 통과
+- Expo web export 통과
+- /health 기준 activityStoreMode=postgres 확인됨
+
+8. 운영 중 알아야 할 점
+- 관리자 페이지에서 문구/링크/이미지 URL 수정 가능
+- "배포 기준 반영" 버튼은 현재 배포된 content/app-content.json 값을 라이브 서버 값으로 덮어쓴다
+- 앱은 실행/복귀 시 기기 등록과 앱 오픈 기록을 서버로 보낸다
+- DATABASE_URL이 없으면 서버는 memory 모드로 뜬다
+
+9. 알려진 리스크 / 꼭 해야 할 후속 작업
+- DB credential이 채팅 중 노출된 적이 있어 Render DB credential 재발급이 필요하다
+- 관리자 인증은 Basic Auth 기반이라 강한 비밀번호 유지가 필요하다
+- 앱은 알림 권한을 허용해야만 진입 가능하게 구현되어 있어 스토어 심사 리스크가 있다
+- 푸시 발송 실동작은 아직 없음. 현재는 캠페인 메타데이터 저장 기반만 마련됨
+- Expo push receipt 확인/죽은 토큰 정리 작업은 아직 구현 전
+
+10. 다음 추천 작업
+- Render DB credential 재발급 후 DATABASE_URL 갱신
+- 실제 푸시 발송 API 추가
+- Expo receipt polling + token invalidation 추가
+- 관리자에서 캠페인 생성/발송 화면 확장
+- 고객 식별 전략 확정 후 customer external id 연결 방식 고도화
+
+11. 주의
+- 실제 접속 문자열, 비밀번호, 운영 토큰은 이 문서에 적지 않는다
+- 새 운영자가 시작할 때는 .env.example와 Render 대시보드의 현재 값을 기준으로 다시 세팅한다

@@ -4,6 +4,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 import { createActivityStore, type ActivityStore } from './activityStore';
+import { createExpoPushGateway, type ExpoPushGateway } from './expoPushGateway';
+import { PushCampaignService, PushCampaignServiceError } from './pushCampaignService';
 import { DEFAULT_APP_CONTENT } from '../src/data/content';
 import { appContentSchema } from '../src/shared/contentSchema';
 import {
@@ -22,6 +24,10 @@ type ContentServerOptions = {
   contentFilePath?: string;
   contentSeedFilePath?: string;
   activityStore?: ActivityStore;
+  pushGateway?: ExpoPushGateway;
+  pushReceiptSweepIntervalMs?: number;
+  pushReceiptReadyDelayMs?: number;
+  autoPushReceiptSync?: boolean;
 };
 
 export function createContentServer(options: ContentServerOptions = {}) {
@@ -57,6 +63,17 @@ export function createContentServer(options: ContentServerOptions = {}) {
   const contentPathsAreShared =
     path.resolve(contentSeedFilePath) === path.resolve(contentFilePath);
   const activityStore = options.activityStore ?? createActivityStore();
+  const pushCampaignService = new PushCampaignService({
+    activityStore,
+    pushGateway: options.pushGateway ?? createExpoPushGateway(),
+    receiptSweepIntervalMs:
+      options.pushReceiptSweepIntervalMs ??
+      Number(process.env.PUSH_RECEIPT_SWEEP_INTERVAL_MS ?? 5 * 60 * 1000),
+    receiptReadyDelayMs:
+      options.pushReceiptReadyDelayMs ??
+      Number(process.env.PUSH_RECEIPT_READY_DELAY_MS ?? 20 * 60 * 1000),
+    autoReceiptSync: options.autoPushReceiptSync ?? true,
+  });
   const rateLimitSweepIntervalMs = 60 * 1000;
 
   let writeInProgress = false;
@@ -481,6 +498,69 @@ export function createContentServer(options: ContentServerOptions = {}) {
     }
   });
 
+  app.post('/api/push/campaigns/send', adminRateLimit, requireAdminAuth, async (req, res) => {
+    const validation = createPushCampaignRequestSchema.safeParse(req.body);
+
+    if (!validation.success) {
+      res.status(400).json({
+        message: 'Invalid push send payload.',
+        issues: validation.error.issues,
+      });
+      return;
+    }
+
+    try {
+      const campaign = await activityStore.createPushCampaign(validation.data);
+      const result = await pushCampaignService.sendCampaign(campaign.id);
+      res.status(201).json(result);
+    } catch (error) {
+      if (error instanceof PushCampaignServiceError) {
+        res.status(error.statusCode).json({
+          message: error.message,
+        });
+        return;
+      }
+
+      console.error('Failed to send push campaign immediately', error);
+      res.status(500).json({
+        message: 'Failed to send push campaign immediately.',
+      });
+    }
+  });
+
+  app.post('/api/push/campaigns/:campaignId/send', adminRateLimit, requireAdminAuth, async (req, res) => {
+    try {
+      const result = await pushCampaignService.sendCampaign(String(req.params.campaignId));
+      res.json(result);
+    } catch (error) {
+      if (error instanceof PushCampaignServiceError) {
+        res.status(error.statusCode).json({
+          message: error.message,
+        });
+        return;
+      }
+
+      console.error('Failed to send push campaign', error);
+      res.status(500).json({
+        message: 'Failed to send push campaign.',
+      });
+    }
+  });
+
+  app.post('/api/push/receipts/sync', adminRateLimit, requireAdminAuth, async (req, res) => {
+    const force = req.body?.force === true;
+
+    try {
+      const result = await pushCampaignService.syncReceipts({ force });
+      res.json(result);
+    } catch (error) {
+      console.error('Failed to sync Expo push receipts', error);
+      res.status(500).json({
+        message: 'Failed to sync Expo push receipts.',
+      });
+    }
+  });
+
   app.get('/admin', adminRateLimit, requireAdminAuth, (_req, res) => {
     res.sendFile(adminPagePath);
   });
@@ -497,6 +577,7 @@ export function createContentServer(options: ContentServerOptions = {}) {
     ensureContentFile,
     close: async () => {
       clearInterval(rateLimitSweepTimer);
+      await pushCampaignService.close();
       await activityStore.close();
     },
   };

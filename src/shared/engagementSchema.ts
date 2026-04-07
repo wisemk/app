@@ -69,6 +69,14 @@ export const createPushCampaignRequestSchema = z.object({
   createdBy: z.string().min(1),
 });
 
+export const pushCampaignDeliveryStatsSchema = z.object({
+  total: z.number().int().min(0),
+  pending: z.number().int().min(0),
+  success: z.number().int().min(0),
+  failed: z.number().int().min(0),
+  invalid: z.number().int().min(0),
+});
+
 export const pushCampaignSummarySchema = z.object({
   id: z.string().min(1),
   title: z.string().min(1),
@@ -78,5 +86,23 @@ export const pushCampaignSummarySchema = z.object({
   status: pushCampaignStatusSchema,
   createdBy: z.string().min(1),
   createdAt: isoDateTimeSchema,
+  deliveryStats: pushCampaignDeliveryStatsSchema,
+  lastSentAt: isoDateTimeSchema.nullable(),
+  lastReceiptCheckedAt: isoDateTimeSchema.nullable(),
+  storageMode: activityStorageModeSchema,
+});
+
+export const sendPushCampaignResponseSchema = z.object({
+  campaign: pushCampaignSummarySchema,
+  targetedCount: z.number().int().min(0),
+  ticketedCount: z.number().int().min(0),
+  failedCount: z.number().int().min(0),
+  storageMode: activityStorageModeSchema,
+});
+
+export const syncPushReceiptsResponseSchema = z.object({
+  checkedCount: z.number().int().min(0),
+  updatedCount: z.number().int().min(0),
+  unresolvedCount: z.number().int().min(0),
   storageMode: activityStorageModeSchema,
 });

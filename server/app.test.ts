@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { DEFAULT_APP_CONTENT } from '../src/data/content';
 import { createActivityStore } from './activityStore';
 import { createContentServer } from './app';
+import type { ExpoPushGateway, ExpoPushMessage, ExpoPushReceipt, ExpoPushTicket } from './expoPushGateway';
 
 const ADMIN_USER = 'admin';
 const ADMIN_PASSWORD = 'test-pass-123';
@@ -17,7 +18,42 @@ const tempRoots: string[] = [];
 type TestAppOptions = {
   seedContent?: typeof DEFAULT_APP_CONTENT;
   separateLiveContentFile?: boolean;
+  pushGateway?: ExpoPushGateway;
 };
+
+function createFakePushGateway(options?: {
+  tickets?: ExpoPushTicket[];
+  receipts?: Record<string, ExpoPushReceipt>;
+}): ExpoPushGateway {
+  return {
+    async send(messages: ExpoPushMessage[]) {
+      return (
+        options?.tickets ??
+        messages.map((_, index) => ({
+          status: 'ok',
+          id: `ticket-${index + 1}`,
+        }))
+      );
+    },
+    async getReceipts(ids: string[]) {
+      if (options?.receipts) {
+        return options.receipts;
+      }
+
+      return Object.fromEntries(
+        ids.map((id) => [
+          id,
+          {
+            status: 'ok',
+          } satisfies ExpoPushReceipt,
+        ]),
+      );
+    },
+    isExpoPushToken(token: string) {
+      return /^Expo(?:nent)?PushToken\[[^\]]+\]$/.test(token);
+    },
+  };
+}
 
 async function createFixtureRoot(seedContent = DEFAULT_APP_CONTENT) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'soaek-bank-server-'));
@@ -51,6 +87,8 @@ async function createTestApp(options: TestAppOptions = {}) {
     activityStore: createActivityStore({
       databaseUrl: '',
     }),
+    pushGateway: options.pushGateway ?? createFakePushGateway(),
+    autoPushReceiptSync: false,
     adminUser: ADMIN_USER,
     adminPassword: ADMIN_PASSWORD,
     allowedOrigins: ['http://allowed.example'],
@@ -187,6 +225,75 @@ describe('content server', () => {
     expect(listResponse.status).toBe(200);
     expect(listResponse.body).toHaveLength(1);
     expect(listResponse.body[0].title).toBe('월말 리마인드');
+  });
+
+  it('sends a push campaign and resolves Expo receipts', async () => {
+    const { app } = await createTestApp({
+      pushGateway: createFakePushGateway({
+        tickets: [
+          {
+            status: 'ok',
+            id: 'ticket-success-1',
+          },
+        ],
+        receipts: {
+          'ticket-success-1': {
+            status: 'ok',
+          },
+        },
+      }),
+    });
+
+    await request(app)
+      .post('/api/device/register')
+      .send({
+        installationId: 'push-device-1',
+        customerExternalId: 'push-customer-1',
+        platform: 'android',
+        appVersion: '1.0.0',
+        expoPushToken: 'ExpoPushToken[push-device-1]',
+        pushPermissionGranted: true,
+        deviceLabel: 'Galaxy S25',
+        deviceOsVersion: '15',
+      })
+      .expect(201);
+
+    const sendResponse = await request(app)
+      .post('/api/push/campaigns/send')
+      .auth(ADMIN_USER, ADMIN_PASSWORD)
+      .send({
+        title: '월말 알림',
+        message: '앱에서 다시 확인해보세요.',
+        audienceLabel: '푸시 허용 고객',
+        scheduledFor: null,
+        createdBy: 'admin',
+      });
+
+    expect(sendResponse.status).toBe(201);
+    expect(sendResponse.body.targetedCount).toBe(1);
+    expect(sendResponse.body.ticketedCount).toBe(1);
+    expect(sendResponse.body.campaign.status).toBe('queued');
+    expect(sendResponse.body.campaign.deliveryStats.pending).toBe(1);
+
+    const syncResponse = await request(app)
+      .post('/api/push/receipts/sync')
+      .auth(ADMIN_USER, ADMIN_PASSWORD)
+      .send({
+        force: true,
+      });
+
+    expect(syncResponse.status).toBe(200);
+    expect(syncResponse.body.checkedCount).toBe(1);
+    expect(syncResponse.body.updatedCount).toBe(1);
+
+    const campaignsResponse = await request(app)
+      .get('/api/push/campaigns')
+      .auth(ADMIN_USER, ADMIN_PASSWORD);
+
+    expect(campaignsResponse.status).toBe(200);
+    expect(campaignsResponse.body[0].status).toBe('completed');
+    expect(campaignsResponse.body[0].deliveryStats.success).toBe(1);
+    expect(campaignsResponse.body[0].deliveryStats.pending).toBe(0);
   });
 
   it('saves valid content with auth', async () => {

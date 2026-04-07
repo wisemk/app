@@ -173,6 +173,22 @@
       .item-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
       .item-title { font-size: 15px; font-weight: 900; }
       .empty { padding: 16px; border-radius: 18px; border: 1px dashed #bfd3eb; color: var(--muted); background: #f8fbff; }
+      .push-console { padding: 20px; }
+      .push-console-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 16px; }
+      .template-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+      .campaign-list { display: grid; gap: 12px; }
+      .campaign-row {
+        padding: 14px; border-radius: 18px; border: 1px solid var(--line); background: #f8fbff;
+        display: grid; gap: 10px;
+      }
+      .campaign-row-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+      .campaign-name { font-size: 15px; font-weight: 900; }
+      .campaign-message { font-size: 13px; line-height: 1.6; color: var(--muted); }
+      .campaign-metrics { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--muted); }
+      .campaign-pill {
+        display: inline-flex; align-items: center; min-height: 30px; padding: 6px 10px; border-radius: 999px;
+        background: #eff6ff; color: #2563eb; font-size: 12px; font-weight: 800;
+      }
       .footer { margin-top: 18px; text-align: center; color: var(--muted); font-size: 13px; line-height: 1.7; }
       @media (max-width: 1120px) {
         .shell { grid-template-columns: 1fr; }
@@ -191,6 +207,7 @@
         .sidebar-panel, .section-body { padding-left: 16px; padding-right: 16px; }
         .panel-head, .item-head, summary.section-head { flex-direction: column; align-items: stretch; }
         .grid.two { grid-template-columns: 1fr; }
+        .push-console-grid { grid-template-columns: 1fr; }
         .info-tooltip {
           top: calc(100% + 8px); left: 0; transform: none; width: min(240px, calc(100vw - 56px));
         }
@@ -255,6 +272,49 @@
         </aside>
 
         <div class="workspace">
+          <section class="sidebar-panel push-console">
+            <div class="panel-head">
+              <div>
+                <div class="panel-kicker">Push Console</div>
+                <div class="panel-title">푸시 발송</div>
+              </div>
+              <div class="summary-actions">
+                <button class="button secondary small" id="push-receipt-sync-button" type="button">영수증 확인</button>
+              </div>
+            </div>
+            <div class="push-console-grid">
+              <article class="summary-card">
+                <div class="summary-label">즉시 발송</div>
+                <div class="grid">
+                  <div class="field">
+                    <div class="label-row"><label for="push-title-input">캠페인 제목</label></div>
+                    <input id="push-title-input" type="text" placeholder="예: 월말 안내" />
+                  </div>
+                  <div class="field">
+                    <div class="label-row"><label for="push-message-input">푸시 메시지</label></div>
+                    <textarea id="push-message-input" placeholder="휴대폰에 보낼 문구를 입력하세요."></textarea>
+                  </div>
+                  <div class="field">
+                    <div class="label-row"><label for="push-audience-input">대상 라벨</label></div>
+                    <input id="push-audience-input" type="text" value="푸시 허용 고객" />
+                  </div>
+                  <div class="field">
+                    <div class="label-row"><label>콘텐츠 템플릿</label></div>
+                    <div class="template-chips" id="push-template-root"></div>
+                  </div>
+                </div>
+                <div class="field-actions">
+                  <button class="button secondary small" id="push-draft-button" type="button">초안 저장</button>
+                  <button class="button primary small" id="push-send-button" type="button">지금 발송</button>
+                </div>
+                <div class="status" id="push-status-text">푸시 상태를 불러오는 중...</div>
+              </article>
+              <article class="summary-card">
+                <div class="summary-label">최근 캠페인</div>
+                <div class="campaign-list" id="push-campaign-list"></div>
+              </article>
+            </div>
+          </section>
           <section class="sections" id="editor-root"></section>
         </div>
       </div>
@@ -275,12 +335,26 @@
       const summaryDetailButton = document.getElementById('summary-detail-button');
       const summaryChatButton = document.getElementById('summary-chat-button');
       const navRoot = document.getElementById('nav-root');
+      const pushTitleInput = document.getElementById('push-title-input');
+      const pushMessageInput = document.getElementById('push-message-input');
+      const pushAudienceInput = document.getElementById('push-audience-input');
+      const pushTemplateRoot = document.getElementById('push-template-root');
+      const pushDraftButton = document.getElementById('push-draft-button');
+      const pushSendButton = document.getElementById('push-send-button');
+      const pushReceiptSyncButton = document.getElementById('push-receipt-sync-button');
+      const pushStatusText = document.getElementById('push-status-text');
+      const pushCampaignList = document.getElementById('push-campaign-list');
 
       let currentContent = null;
+      let recentPushCampaigns = [];
       let isDirty = false;
       let isLoading = false;
       let isSaving = false;
       let isSyncing = false;
+      let isPushLoading = false;
+      let isPushSaving = false;
+      let isPushSending = false;
+      let isPushReceiptSyncing = false;
       let tooltipIdCounter = 0;
       const openSections = new Set();
 
@@ -559,9 +633,31 @@
 
       function syncActionButtons() {
         const busy = isLoading || isSaving || isSyncing;
+        const pushBusy = isPushLoading || isPushSaving || isPushSending || isPushReceiptSyncing;
         reloadButton.disabled = busy;
         repoSyncButton.disabled = busy || !currentContent;
         saveButton.disabled = busy || !currentContent;
+        pushDraftButton.disabled = pushBusy;
+        pushSendButton.disabled = pushBusy;
+        pushReceiptSyncButton.disabled = pushBusy;
+        pushCampaignList
+          ?.querySelectorAll('[data-push-send-existing]')
+          .forEach((button) => {
+            button.disabled = pushBusy;
+          });
+      }
+
+      function setPushStatus(message, options = {}) {
+        if (!pushStatusText) return;
+        pushStatusText.textContent = message;
+        pushStatusText.classList.remove('dirty', 'error');
+        if (options.error) {
+          pushStatusText.classList.add('error');
+          return;
+        }
+        if (options.dirty) {
+          pushStatusText.classList.add('dirty');
+        }
       }
 
       function createElement(tag, className, text) {
@@ -894,6 +990,240 @@
         });
       }
 
+      function getPushFormPayload() {
+        const title = String(pushTitleInput?.value || '').trim();
+        const message = String(pushMessageInput?.value || '').trim();
+        const audienceLabel = String(pushAudienceInput?.value || '').trim() || '푸시 허용 고객';
+
+        if (!title) {
+          throw new Error('푸시 제목을 입력하세요.');
+        }
+
+        if (!message) {
+          throw new Error('푸시 메시지를 입력하세요.');
+        }
+
+        return {
+          title,
+          message,
+          audienceLabel,
+          scheduledFor: null,
+          createdBy: 'admin',
+        };
+      }
+
+      function fillPushFormFromTemplate(template) {
+        if (!template) return;
+        pushTitleInput.value = template.title || '';
+        pushMessageInput.value = template.message || '';
+        setPushStatus('콘텐츠 템플릿 문구를 발송 입력칸에 채웠습니다.');
+      }
+
+      function renderPushTemplates() {
+        if (!pushTemplateRoot) return;
+        pushTemplateRoot.innerHTML = '';
+
+        const templates = Array.isArray(currentContent?.pushCampaigns) ? currentContent.pushCampaigns : [];
+
+        if (!templates.length) {
+          pushTemplateRoot.appendChild(createElement('div', 'empty', '등록된 템플릿이 없습니다.'));
+          return;
+        }
+
+        templates.forEach((template) => {
+          const button = createElement('button', 'button secondary small', template.title || '제목 없음');
+          button.type = 'button';
+          button.addEventListener('click', () => fillPushFormFromTemplate(template));
+          pushTemplateRoot.appendChild(button);
+        });
+      }
+
+      function formatPushCampaignMetrics(campaign) {
+        return [
+          `대상 ${campaign.deliveryStats.total}`,
+          `대기 ${campaign.deliveryStats.pending}`,
+          `성공 ${campaign.deliveryStats.success}`,
+          `실패 ${campaign.deliveryStats.failed}`,
+          `무효 ${campaign.deliveryStats.invalid}`,
+        ];
+      }
+
+      function renderPushCampaigns() {
+        if (!pushCampaignList) return;
+        pushCampaignList.innerHTML = '';
+
+        if (!recentPushCampaigns.length) {
+          pushCampaignList.appendChild(createElement('div', 'empty', '아직 발송 기록이 없습니다.'));
+          return;
+        }
+
+        recentPushCampaigns.forEach((campaign) => {
+          const row = createElement('article', 'campaign-row');
+          const head = createElement('div', 'campaign-row-head');
+          const text = document.createElement('div');
+          text.appendChild(createElement('div', 'campaign-name', campaign.title));
+          text.appendChild(createElement('div', 'campaign-message', campaign.message));
+          head.appendChild(text);
+          head.appendChild(createElement('div', 'campaign-pill', campaign.status));
+          row.appendChild(head);
+
+          const metrics = createElement('div', 'campaign-metrics');
+          formatPushCampaignMetrics(campaign).forEach((label) => {
+            metrics.appendChild(createElement('span', 'campaign-pill', label));
+          });
+          row.appendChild(metrics);
+
+          const actions = createElement('div', 'summary-actions');
+          if (campaign.status === 'draft') {
+            const sendButton = createElement('button', 'button secondary small', '초안 발송');
+            sendButton.type = 'button';
+            sendButton.dataset.pushSendExisting = campaign.id;
+            sendButton.addEventListener('click', () => {
+              sendExistingPushCampaign(campaign.id).catch((error) => {
+                console.error(error);
+                setPushStatus(error.message, { error: true });
+              });
+            });
+            actions.appendChild(sendButton);
+          }
+          row.appendChild(actions);
+          pushCampaignList.appendChild(row);
+        });
+      }
+
+      async function loadPushCampaigns() {
+        if (isPushLoading) return;
+        isPushLoading = true;
+        syncActionButtons();
+
+        try {
+          const response = await fetch('/api/push/campaigns?limit=12');
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          recentPushCampaigns = await response.json();
+          renderPushCampaigns();
+          if (!isPushSaving && !isPushSending && !isPushReceiptSyncing) {
+            setPushStatus('최근 푸시 캠페인 상태를 불러왔습니다.');
+          }
+        } finally {
+          isPushLoading = false;
+          syncActionButtons();
+        }
+      }
+
+      async function createPushDraft() {
+        const payload = getPushFormPayload();
+        isPushSaving = true;
+        syncActionButtons();
+
+        try {
+          setPushStatus('푸시 초안을 저장하는 중...');
+          const response = await fetch('/api/push/campaigns', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          if (!response.ok) {
+            const failure = await response.json().catch(() => null);
+            throw new Error(failure?.message || `HTTP ${response.status}`);
+          }
+
+          await loadPushCampaigns();
+          setPushStatus('푸시 초안을 저장했습니다.');
+        } finally {
+          isPushSaving = false;
+          syncActionButtons();
+        }
+      }
+
+      async function sendPushNow() {
+        const payload = getPushFormPayload();
+        const confirmed = window.confirm(`"${payload.title}" 캠페인을 지금 발송할까요?`);
+        if (!confirmed) return;
+
+        isPushSending = true;
+        syncActionButtons();
+
+        try {
+          setPushStatus('푸시를 발송하는 중...');
+          const response = await fetch('/api/push/campaigns/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          if (!response.ok) {
+            const failure = await response.json().catch(() => null);
+            throw new Error(failure?.message || `HTTP ${response.status}`);
+          }
+
+          const result = await response.json();
+          await loadPushCampaigns();
+          setPushStatus(
+            `발송 완료: 대상 ${result.targetedCount}건, 티켓 ${result.ticketedCount}건, 즉시 실패 ${result.failedCount}건`,
+          );
+        } finally {
+          isPushSending = false;
+          syncActionButtons();
+        }
+      }
+
+      async function sendExistingPushCampaign(campaignId) {
+        const confirmed = window.confirm('이 초안 캠페인을 지금 발송할까요?');
+        if (!confirmed) return;
+
+        isPushSending = true;
+        syncActionButtons();
+
+        try {
+          setPushStatus('저장된 초안을 발송하는 중...');
+          const response = await fetch(`/api/push/campaigns/${campaignId}/send`, {
+            method: 'POST',
+          });
+          if (!response.ok) {
+            const failure = await response.json().catch(() => null);
+            throw new Error(failure?.message || `HTTP ${response.status}`);
+          }
+
+          const result = await response.json();
+          await loadPushCampaigns();
+          setPushStatus(
+            `초안 발송 완료: 대상 ${result.targetedCount}건, 티켓 ${result.ticketedCount}건, 즉시 실패 ${result.failedCount}건`,
+          );
+        } finally {
+          isPushSending = false;
+          syncActionButtons();
+        }
+      }
+
+      async function syncPushReceipts(force = true) {
+        isPushReceiptSyncing = true;
+        syncActionButtons();
+
+        try {
+          setPushStatus('Expo 영수증을 확인하는 중...');
+          const response = await fetch('/api/push/receipts/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ force }),
+          });
+          if (!response.ok) {
+            const failure = await response.json().catch(() => null);
+            throw new Error(failure?.message || `HTTP ${response.status}`);
+          }
+
+          const result = await response.json();
+          await loadPushCampaigns();
+          setPushStatus(
+            `영수증 확인 완료: 조회 ${result.checkedCount}건, 반영 ${result.updatedCount}건, 대기 ${result.unresolvedCount}건`,
+          );
+        } finally {
+          isPushReceiptSyncing = false;
+          syncActionButtons();
+        }
+      }
+
       function updateSummary() {
         if (!currentContent) return;
         summaryBrand.textContent = currentContent.business.brandName || '-';
@@ -915,6 +1245,7 @@
           editorRoot.appendChild(renderSection(section, index));
         });
         renderQuickNav();
+        renderPushTemplates();
         updateSummary();
       }
 
@@ -938,6 +1269,10 @@
           currentContent = await response.json();
           updateMeta(currentContent);
           renderEditor();
+          await loadPushCampaigns().catch((error) => {
+            console.error(error);
+            setPushStatus(`푸시 목록 불러오기 실패: ${error.message}`, { error: true });
+          });
           markClean('최신 서버 내용을 불러왔습니다.');
         } finally {
           isLoading = false;
@@ -963,6 +1298,10 @@
           currentContent = await response.json();
           updateMeta(currentContent);
           renderEditor();
+          await loadPushCampaigns().catch((error) => {
+            console.error(error);
+            setPushStatus(`푸시 목록 갱신 실패: ${error.message}`, { error: true });
+          });
           markClean('저장이 완료되었습니다. 앱에서 새로고침하면 바로 반영됩니다.');
         } finally {
           isSaving = false;
@@ -998,6 +1337,10 @@
           currentContent = await response.json();
           updateMeta(currentContent);
           renderEditor();
+          await loadPushCampaigns().catch((error) => {
+            console.error(error);
+            setPushStatus(`푸시 목록 갱신 실패: ${error.message}`, { error: true });
+          });
           markClean('배포된 seed 값으로 서버 내용을 덮어썼습니다.');
         } finally {
           isSyncing = false;
@@ -1023,6 +1366,27 @@
         saveContent().catch((error) => {
           console.error(error);
           setStatus(error.message, { error: true });
+        });
+      });
+
+      pushDraftButton.addEventListener('click', () => {
+        createPushDraft().catch((error) => {
+          console.error(error);
+          setPushStatus(error.message, { error: true });
+        });
+      });
+
+      pushSendButton.addEventListener('click', () => {
+        sendPushNow().catch((error) => {
+          console.error(error);
+          setPushStatus(error.message, { error: true });
+        });
+      });
+
+      pushReceiptSyncButton.addEventListener('click', () => {
+        syncPushReceipts(true).catch((error) => {
+          console.error(error);
+          setPushStatus(error.message, { error: true });
         });
       });
 
