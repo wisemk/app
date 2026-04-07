@@ -14,6 +14,7 @@ type ContentServerOptions = {
   allowedOrigins?: string[];
   projectRoot?: string;
   contentFilePath?: string;
+  contentSeedFilePath?: string;
 };
 
 export function createContentServer(options: ContentServerOptions = {}) {
@@ -41,7 +42,11 @@ export function createContentServer(options: ContentServerOptions = {}) {
     options.contentFilePath ??
     process.env.CONTENT_FILE_PATH ??
     path.resolve(projectRoot, 'content', 'app-content.json');
+  const contentSeedFilePath =
+    options.contentSeedFilePath ?? path.resolve(projectRoot, 'content', 'app-content.json');
   const adminPagePath = path.resolve(projectRoot, 'server', 'public', 'admin.html');
+  const contentPathsAreShared =
+    path.resolve(contentSeedFilePath) === path.resolve(contentFilePath);
 
   let writeInProgress = false;
 
@@ -80,7 +85,7 @@ export function createContentServer(options: ContentServerOptions = {}) {
 
       const corsOptions = {
         origin: true,
-        methods: ['GET', 'PUT'],
+        methods: ['GET', 'PUT', 'POST'],
         allowedHeaders: ['Content-Type', 'Authorization'],
       };
 
@@ -212,6 +217,12 @@ export function createContentServer(options: ContentServerOptions = {}) {
     }
   }
 
+  async function readSeedContentFile() {
+    const rawValue = await fs.readFile(contentSeedFilePath, 'utf8');
+    const parsedValue = JSON.parse(rawValue);
+    return appContentSchema.parse(parsedValue);
+  }
+
   async function readContentFile() {
     await ensureContentFile();
 
@@ -273,6 +284,49 @@ export function createContentServer(options: ContentServerOptions = {}) {
       console.error('Failed to write content file', error);
       res.status(500).json({
         message: 'Failed to save content file.',
+      });
+    }
+  });
+
+  app.post('/api/content/sync-from-repo', adminRateLimit, requireAdminAuth, async (_req, res) => {
+    if (contentPathsAreShared) {
+      res.status(409).json({
+        message:
+          'Seed file and live content file are the same path. Set CONTENT_FILE_PATH to use this action.',
+      });
+      return;
+    }
+
+    try {
+      const repoContent = await readSeedContentFile();
+      const savedContent = await writeContentFile(repoContent);
+      res.json(savedContent);
+    } catch (error) {
+      if (error instanceof Error && error.name === 'ContentWriteInProgress') {
+        res.status(409).json({
+          message: 'Another content save is already in progress.',
+        });
+        return;
+      }
+
+      console.error('Failed to sync content from repo', error);
+      let detail = 'Unknown failure.';
+
+      if (error instanceof SyntaxError) {
+        detail = 'The deployed seed file contains invalid JSON.';
+      } else if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        error.code === 'ENOENT'
+      ) {
+        detail = 'The deployed seed file could not be found.';
+      } else if (error instanceof Error && error.name === 'ZodError') {
+        detail = 'The deployed seed file failed content schema validation.';
+      }
+
+      res.status(500).json({
+        message: `Failed to sync content from repo. ${detail}`,
       });
     }
   });

@@ -213,6 +213,7 @@
               <span class="pill" id="schema-badge">schema v-</span>
               <span class="pill" id="updated-badge">updated -</span>
               <button class="button secondary" id="reload-button" type="button">다시 불러오기</button>
+              <button class="button secondary" id="repo-sync-button" type="button">배포 기준 반영</button>
               <button class="button primary" id="save-button" type="button">저장하기</button>
             </div>
           </section>
@@ -265,6 +266,7 @@
       const schemaBadge = document.getElementById('schema-badge');
       const updatedBadge = document.getElementById('updated-badge');
       const reloadButton = document.getElementById('reload-button');
+      const repoSyncButton = document.getElementById('repo-sync-button');
       const saveButton = document.getElementById('save-button');
       const summaryBrand = document.getElementById('summary-brand');
       const summaryPhone = document.getElementById('summary-phone');
@@ -278,6 +280,7 @@
       let isDirty = false;
       let isLoading = false;
       let isSaving = false;
+      let isSyncing = false;
       let tooltipIdCounter = 0;
       const openSections = new Set();
 
@@ -555,8 +558,9 @@
       }
 
       function syncActionButtons() {
-        const busy = isLoading || isSaving;
+        const busy = isLoading || isSaving || isSyncing;
         reloadButton.disabled = busy;
+        repoSyncButton.disabled = busy || !currentContent;
         saveButton.disabled = busy || !currentContent;
       }
 
@@ -924,7 +928,7 @@
       }
 
       async function loadContent() {
-        if (isLoading || isSaving) return;
+        if (isLoading || isSaving || isSyncing) return;
         isLoading = true;
         syncActionButtons();
         try {
@@ -942,7 +946,7 @@
       }
 
       async function saveContent() {
-        if (!currentContent || isLoading || isSaving) return;
+        if (!currentContent || isLoading || isSaving || isSyncing) return;
         isSaving = true;
         syncActionButtons();
         try {
@@ -966,10 +970,52 @@
         }
       }
 
+      async function syncContentFromRepo() {
+        if (!currentContent || isLoading || isSaving || isSyncing) return;
+
+        const confirmMessage = isDirty
+          ? '저장하지 않은 현재 편집 내용이 사라집니다. 현재 배포된 content/app-content.json 값으로 서버 내용을 덮어쓸까요?'
+          : '현재 배포된 content/app-content.json 값으로 서버 내용을 덮어쓸까요?';
+
+        if (!window.confirm(confirmMessage)) {
+          return;
+        }
+
+        isSyncing = true;
+        syncActionButtons();
+
+        try {
+          setStatus('배포 기준 내용 반영 중...');
+          const response = await fetch('/api/content/sync-from-repo', {
+            method: 'POST',
+          });
+
+          if (!response.ok) {
+            const payload = await response.json().catch(() => null);
+            throw new Error(payload?.message || `HTTP ${response.status}`);
+          }
+
+          currentContent = await response.json();
+          updateMeta(currentContent);
+          renderEditor();
+          markClean('배포된 seed 값으로 서버 내용을 덮어썼습니다.');
+        } finally {
+          isSyncing = false;
+          syncActionButtons();
+        }
+      }
+
       reloadButton.addEventListener('click', () => {
         loadContent().catch((error) => {
           console.error(error);
           setStatus(`불러오기 실패: ${error.message}`, { error: true });
+        });
+      });
+
+      repoSyncButton.addEventListener('click', () => {
+        syncContentFromRepo().catch((error) => {
+          console.error(error);
+          setStatus(error.message, { error: true });
         });
       });
 
