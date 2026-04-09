@@ -86,6 +86,33 @@
       .action-panel .nav-list {
         margin-top: 14px;
       }
+      .sidebar-utility,
+      .campaign-history {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.92);
+      }
+      .sidebar-utility summary,
+      .campaign-history summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 13px 14px;
+        font-size: 13px;
+        font-weight: 900;
+        color: var(--ink);
+      }
+      .sidebar-utility summary::-webkit-details-marker,
+      .campaign-history summary::-webkit-details-marker {
+        display: none;
+      }
+      .sidebar-utility-body {
+        display: grid;
+        gap: 8px;
+        padding: 0 14px 14px;
+      }
+      .campaign-history-body {
+        padding: 0 0 2px;
+      }
       .sidebar-actions { margin-top: 12px; }
       .pill, .status {
         display: inline-flex; align-items: center; min-height: 42px; padding: 10px 14px;
@@ -352,6 +379,7 @@
       const brandPanel = document.querySelector('.brand-panel');
       const navPanel = navRoot?.closest('.sidebar-panel');
       const summaryPanel = summaryBrand?.closest('.sidebar-panel');
+      const toolbar = actionPanel?.querySelector('.toolbar');
       const pushTitleInput = document.getElementById('push-title-input');
       const pushMessageInput = document.getElementById('push-message-input');
       const pushAudienceInput = document.getElementById('push-audience-input');
@@ -361,6 +389,7 @@
       const pushReceiptSyncButton = document.getElementById('push-receipt-sync-button');
       const pushStatusText = document.getElementById('push-status-text');
       const pushCampaignList = document.getElementById('push-campaign-list');
+      const pushCampaignCard = pushCampaignList?.closest('.summary-card');
 
       let currentContent = null;
       let recentPushCampaigns = [];
@@ -377,9 +406,42 @@
       const pushConsoleSection = document.querySelector(
         'details.section[data-section-id="push-console"]',
       );
+      let pushCampaignSummaryLabel = null;
 
       if (brandPanel) {
         brandPanel.remove();
+      }
+
+      if (toolbar) {
+        const primaryActions = createElement('div', 'toolbar-actions');
+        if (reloadButton) {
+          primaryActions.appendChild(reloadButton);
+        }
+        if (saveButton) {
+          primaryActions.appendChild(saveButton);
+        }
+        toolbar.appendChild(primaryActions);
+
+        const utilityDetails = document.createElement('details');
+        utilityDetails.className = 'sidebar-utility';
+        utilityDetails.appendChild(createElement('summary', '', '고급'));
+        const utilityBody = createElement('div', 'sidebar-utility-body');
+        const utilityMeta = createElement('div', 'toolbar-meta');
+
+        if (schemaBadge) {
+          utilityMeta.appendChild(schemaBadge);
+        }
+        if (updatedBadge) {
+          utilityMeta.appendChild(updatedBadge);
+        }
+        if (utilityMeta.childElementCount) {
+          utilityBody.appendChild(utilityMeta);
+        }
+        if (repoSyncButton) {
+          utilityBody.appendChild(repoSyncButton);
+        }
+        utilityDetails.appendChild(utilityBody);
+        toolbar.appendChild(utilityDetails);
       }
 
       if (navRoot && actionPanel && navPanel && navPanel !== actionPanel) {
@@ -389,6 +451,20 @@
 
       if (summaryPanel) {
         summaryPanel.remove();
+      }
+
+      if (pushCampaignCard && pushCampaignList) {
+        const historyDetails = document.createElement('details');
+        historyDetails.className = 'campaign-history';
+        const historySummary = document.createElement('summary');
+        pushCampaignSummaryLabel = createElement('span', '', '최근 캠페인');
+        historySummary.appendChild(pushCampaignSummaryLabel);
+        historyDetails.appendChild(historySummary);
+        const historyBody = createElement('div', 'campaign-history-body');
+        historyBody.appendChild(pushCampaignList);
+        historyDetails.appendChild(historyBody);
+        pushCampaignCard.innerHTML = '';
+        pushCampaignCard.appendChild(historyDetails);
       }
 
       if (pushConsoleSection) {
@@ -1050,10 +1126,28 @@
       function renderSection(section, index) {
         const details = createElement('details', 'section');
         details.dataset.sectionId = section.id;
-        details.open = openSections.has(section.id) || openSections.size === 0 || index < 2;
+        details.open = openSections.has(section.id) || (openSections.size === 0 && index === 0);
         details.addEventListener('toggle', () => {
-          if (details.open) openSections.add(section.id);
-          else openSections.delete(section.id);
+          if (details.open) {
+            editorRoot
+              .querySelectorAll('details.section[data-section-id]')
+              .forEach((other) => {
+                if (other !== details) {
+                  other.open = false;
+                  if (other.dataset.sectionId) {
+                    openSections.delete(other.dataset.sectionId);
+                  }
+                }
+              });
+            const keepPushConsoleOpen = openSections.has('push-console');
+            openSections.clear();
+            if (keepPushConsoleOpen) {
+              openSections.add('push-console');
+            }
+            openSections.add(section.id);
+          } else {
+            openSections.delete(section.id);
+          }
         });
 
         const summary = createElement('summary', 'section-head');
@@ -1104,9 +1198,23 @@
               `details.section[data-section-id="${section.id}"]`,
             );
             if (!target) return;
+            editorRoot
+              .querySelectorAll('details.section[data-section-id]')
+              .forEach((other) => {
+                if (other !== target) {
+                  other.open = false;
+                }
+              });
+            const keepPushConsoleOpen = openSections.has('push-console');
             target.open = true;
+            openSections.clear();
+            if (keepPushConsoleOpen) {
+              openSections.add('push-console');
+            }
             openSections.add(section.id);
-            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            requestAnimationFrame(() => {
+              target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
           });
           navRoot.appendChild(button);
         });
@@ -1173,6 +1281,9 @@
       function renderPushCampaigns() {
         if (!pushCampaignList) return;
         pushCampaignList.innerHTML = '';
+        if (pushCampaignSummaryLabel) {
+          pushCampaignSummaryLabel.textContent = `최근 캠페인 (${recentPushCampaigns.length})`;
+        }
 
         if (!recentPushCampaigns.length) {
           pushCampaignList.appendChild(createElement('div', 'empty', '아직 발송 기록이 없습니다.'));
