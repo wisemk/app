@@ -113,6 +113,27 @@
       .campaign-history-body {
         padding: 0 0 2px;
       }
+      .compact-disclosure {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.92);
+      }
+      .compact-disclosure summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 12px 14px;
+        font-size: 13px;
+        font-weight: 900;
+        color: var(--ink);
+      }
+      .compact-disclosure summary::-webkit-details-marker {
+        display: none;
+      }
+      .compact-disclosure-body {
+        display: grid;
+        gap: 12px;
+        padding: 0 14px 14px;
+      }
       .sidebar-actions { margin-top: 12px; }
       .pill, .status {
         display: inline-flex; align-items: center; min-height: 42px; padding: 10px 14px;
@@ -390,6 +411,10 @@
       const pushStatusText = document.getElementById('push-status-text');
       const pushCampaignList = document.getElementById('push-campaign-list');
       const pushCampaignCard = pushCampaignList?.closest('.summary-card');
+      const pushFormCard = pushTitleInput?.closest('.summary-card');
+      const pushAudienceField = pushAudienceInput?.closest('.field');
+      const pushTemplateField = pushTemplateRoot?.closest('.field');
+      const pushActionRow = pushSendButton?.closest('.field-actions');
 
       let currentContent = null;
       let recentPushCampaigns = [];
@@ -414,13 +439,12 @@
 
       if (toolbar) {
         const primaryActions = createElement('div', 'toolbar-actions');
-        if (reloadButton) {
-          primaryActions.appendChild(reloadButton);
-        }
         if (saveButton) {
           primaryActions.appendChild(saveButton);
         }
-        toolbar.appendChild(primaryActions);
+        if (primaryActions.childElementCount) {
+          toolbar.appendChild(primaryActions);
+        }
 
         const utilityDetails = document.createElement('details');
         utilityDetails.className = 'sidebar-utility';
@@ -436,6 +460,9 @@
         }
         if (utilityMeta.childElementCount) {
           utilityBody.appendChild(utilityMeta);
+        }
+        if (reloadButton) {
+          utilityBody.appendChild(reloadButton);
         }
         if (repoSyncButton) {
           utilityBody.appendChild(repoSyncButton);
@@ -465,6 +492,30 @@
         historyDetails.appendChild(historyBody);
         pushCampaignCard.innerHTML = '';
         pushCampaignCard.appendChild(historyDetails);
+      }
+
+      if (pushFormCard && pushActionRow) {
+        const pushAdvancedDetails = document.createElement('details');
+        pushAdvancedDetails.className = 'compact-disclosure';
+        pushAdvancedDetails.appendChild(createElement('summary', '', '고급 옵션'));
+        const pushAdvancedBody = createElement('div', 'compact-disclosure-body');
+
+        if (pushAudienceField) {
+          pushAdvancedBody.appendChild(pushAudienceField);
+        }
+        if (pushTemplateField) {
+          pushAdvancedBody.appendChild(pushTemplateField);
+        }
+        if (pushReceiptSyncButton) {
+          const receiptActions = createElement('div', 'field-actions');
+          receiptActions.appendChild(pushReceiptSyncButton);
+          pushAdvancedBody.appendChild(receiptActions);
+        }
+
+        if (pushAdvancedBody.childElementCount) {
+          pushAdvancedDetails.appendChild(pushAdvancedBody);
+          pushActionRow.before(pushAdvancedDetails);
+        }
       }
 
       if (pushConsoleSection) {
