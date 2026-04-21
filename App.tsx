@@ -84,35 +84,6 @@ function PrimaryActionButton({
   );
 }
 
-function formatSyncTime(value: string | null) {
-  if (!value) {
-    return '아직 동기화 기록이 없습니다.';
-  }
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat('ko-KR', {
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date);
-}
-
-function getSourceLabel(source: ContentState['source']) {
-  switch (source) {
-    case 'remote':
-      return '실시간 내용';
-    case 'cache':
-      return '최근 저장본';
-    default:
-      return '기본 내용';
-  }
-}
-
 export default function App() {
   const { width } = useWindowDimensions();
   const isWide = width >= 860;
@@ -339,7 +310,6 @@ export default function App() {
             end={{ x: 1, y: 1 }}
             style={styles.permissionCard}
           >
-            <Text style={styles.permissionEyebrow}>Push Required</Text>
             <Text style={styles.permissionTitle}>알림 허용 후 이용 가능합니다</Text>
             <Text style={styles.permissionBody}>{notificationGate.message}</Text>
 
@@ -389,16 +359,8 @@ export default function App() {
         }
       >
         <View style={styles.heroCard}>
-          <View style={styles.heroTopRow}>
-            <Text style={styles.heroBadge}>SOAEK BANK</Text>
-            <Text style={styles.heroMeta}>
-              {getSourceLabel(contentState.source)} · {formatSyncTime(contentState.syncedAt)}
-            </Text>
-          </View>
           <Text style={styles.heroTitle}>{content.business.brandName}</Text>
-          <Text style={styles.heroBody}>
-            상세 이미지를 보고 바로 상담으로 이어지는 단순한 구조로 구성했습니다.
-          </Text>
+          <Text style={styles.heroBody}>{content.home.subtitle}</Text>
 
           <View style={[styles.actionGrid, isWide && styles.actionGridWide]}>
             <PrimaryActionButton
@@ -422,7 +384,7 @@ export default function App() {
 
         {latestPushTemplate ? (
           <View style={styles.noticeCard}>
-            <Text style={styles.noticeEyebrow}>알림 예시</Text>
+            <Text style={styles.noticeEyebrow}>알림 안내</Text>
             <Text style={styles.noticeTitle}>{latestPushTemplate.title}</Text>
             <Text style={styles.noticeBody}>{latestPushTemplate.message}</Text>
           </View>
@@ -451,12 +413,10 @@ export default function App() {
         </View>
 
         <View style={styles.contactCard}>
-          <Text style={styles.contactEyebrow}>Quick Contact</Text>
-          <Text style={styles.contactTitle}>바로 연결</Text>
+          <Text style={styles.contactEyebrow}>문의하기</Text>
+          <Text style={styles.contactTitle}>바로 상담</Text>
           <Text style={styles.contactPhone}>{content.business.phoneNumber}</Text>
-          <Text style={styles.contactBody}>
-            링크 확인 후 바로 상담하거나 전화로 이어질 수 있게 구성했습니다.
-          </Text>
+          <Text style={styles.contactBody}>{content.support.body}</Text>
 
           <View style={styles.contactButtonRow}>
             <Pressable style={styles.inlinePrimaryButton} onPress={handleChatPress}>
@@ -488,7 +448,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     paddingHorizontal: 16,
     paddingTop: 14,
-    paddingBottom: 104,
+    paddingBottom: 164,
     gap: 14,
   },
   permissionScreen: {
@@ -503,13 +463,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22,
     paddingVertical: 24,
     gap: 12,
-  },
-  permissionEyebrow: {
-    fontSize: 12,
-    lineHeight: 16,
-    fontWeight: '900',
-    letterSpacing: 1.2,
-    color: '#2563EB',
   },
   permissionTitle: {
     fontSize: 28,
@@ -558,21 +511,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#D9E8FF',
     gap: 14,
-  },
-  heroTopRow: {
-    gap: 6,
-  },
-  heroBadge: {
-    fontSize: 12,
-    lineHeight: 16,
-    fontWeight: '900',
-    letterSpacing: 1.2,
-    color: '#2563EB',
-  },
-  heroMeta: {
-    fontSize: 12,
-    lineHeight: 18,
-    color: '#64748B',
   },
   heroTitle: {
     fontSize: 36,
@@ -765,7 +703,7 @@ const styles = StyleSheet.create({
   floatingChatButton: {
     position: 'absolute',
     right: 18,
-    bottom: 24,
+    bottom: 88,
     minWidth: 74,
     minHeight: 54,
     borderRadius: 999,

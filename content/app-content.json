@@ -14,7 +14,7 @@
       "재방문 안내"
     ],
     "title": "소액뱅크",
-    "subtitle": "필요한 안내를 보고 바로 상담으로 이어질 수 있게 간단하게 구성했습니다."
+    "subtitle": "필요한 안내를 확인하고 바로 상담할 수 있습니다."
   },
   "primaryActions": {
     "chat": {
@@ -34,16 +34,16 @@
     "detail": {
       "eyebrow": "상세 안내",
       "title": "필요한 내용을 먼저 확인",
-      "description": "진행 전에 봐야 할 내용을 이미지와 문구로 간단하게 정리했습니다."
+      "description": "진행 전에 봐야 할 내용을 이미지와 문구로 확인할 수 있습니다."
     },
     "retention": {
       "eyebrow": "재방문 안내",
-      "title": "다시 찾기 쉬운 구성",
-      "description": "한 번 상담한 뒤에도 다시 들어와 바로 이어서 확인할 수 있게 구성했습니다."
+      "title": "다시 찾기 쉬운 안내",
+      "description": "한 번 상담한 뒤에도 다시 들어와 필요한 내용을 바로 확인할 수 있습니다."
     },
     "push": {
       "eyebrow": "알림 문구",
-      "title": "월말/월초 안내 예시",
+      "title": "월말/월초 안내",
       "description": "고객에게 다시 안내할 때 사용할 짧은 문구를 관리자에서 바로 수정할 수 있습니다."
     },
     "support": {
@@ -70,13 +70,13 @@
     {
       "eyebrow": "이용 안내",
       "title": "간단한 절차 확인",
-      "description": "필요한 내용을 한눈에 보고 바로 문의할 수 있게 구성했습니다.",
+      "description": "필요한 내용을 한눈에 보고 바로 문의할 수 있습니다.",
       "imageUrl": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80"
     },
     {
       "eyebrow": "운영 정보",
       "title": "문의 전 확인할 내용",
-      "description": "운영시간과 안내 내용을 먼저 보여줘서 바로 판단할 수 있게 했습니다.",
+      "description": "운영시간과 안내 내용을 먼저 보여줘서 바로 확인할 수 있습니다.",
       "imageUrl": "https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=1200&q=80"
     },
     {
@@ -97,7 +97,7 @@
     },
     {
       "title": "월말/월초 알림으로 다시 안내",
-      "description": "재방문이 필요한 시점에 간단한 알림 문구를 보내 다시 들어오게 구성했습니다."
+      "description": "재방문이 필요한 시점에 간단한 알림 문구로 다시 안내합니다."
     }
   ],
   "pushCampaigns": [
@@ -115,7 +115,7 @@
     }
   ],
   "support": {
-    "body": "앱에서 상세 안내를 확인한 뒤 바로 상담이나 전화 문의로 이어질 수 있습니다.",
+    "body": "앱에서 상세 안내를 확인한 뒤 바로 상담이나 전화 문의를 진행할 수 있습니다.",
     "chatButtonLabel": "채팅 열기",
     "chatButtonCaption": "상담 바로 연결",
     "phoneButtonLabel": "대표번호"
